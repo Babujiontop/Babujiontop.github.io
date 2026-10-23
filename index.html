@@ -1,0 +1,101 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>MIXCOFARM MCFT Testnet</title>
+  <script src="https://sdk.minepi.com/pi-sdk.js"></script>
+  <style>
+    body {
+      margin: 0;
+      padding: 24px;
+      background: #080d12;
+      color: #f0f7f4;
+      font-family: Arial, sans-serif;
+    }
+    header, section {
+      max-width: 700px;
+      margin: 24px auto;
+      padding: 22px;
+      border: 1px solid #174b40;
+      border-radius: 16px;
+      background: #101a20;
+    }
+    h1, .green { color: #39df9a; }
+    p { line-height: 1.6; color: #c1d2ce; }
+    button {
+      padding: 14px 18px;
+      border: 0;
+      border-radius: 9px;
+      background: #39df9a;
+      color: #06120d;
+      font-weight: bold;
+      font-size: 16px;
+    }
+    .tag { color: #39df9a; }
+  </style>
+</head>
+<body>
+  <header>
+    <p class="tag">MIXCOFARM • WEB3 FINANCE</p>
+    <h1>MIXCOFARM MCFT</h1>
+    <p>Payments, merchants and digital financial tools — built for the Pi Testnet prototype.</p>
+    <p><strong>Network:</strong> Pi Testnet</p>
+    <button id="login">Sign in with Pi</button>
+    <p id="status">Ready to connect.</p>
+  </header>
+
+  <section>
+    <h2>Financial Dashboard</h2>
+    <p>Customer access • Merchant tools • Transaction history</p>
+    <p class="green">Prototype mode — no real funds are handled.</p>
+  </section>
+
+  <script>
+    const statusText = document.getElementById("status");
+    const loginButton = document.getElementById("login");
+
+    try {
+      if (window.Pi) {
+        Pi.init({ version: "2.0", sandbox: true });
+      } else {
+        statusText.textContent =
+          "Open this app in Pi Browser to test Pi features.";
+      }
+    } catch (error) {
+      statusText.textContent = "Pi SDK initialization failed.";
+    }
+
+    loginButton.addEventListener("click", async () => {
+      try {
+        if (!window.Pi) {
+          statusText.textContent =
+            "Please open the app in Pi Browser.";
+          return;
+        }
+
+        loginButton.disabled = true;
+        statusText.textContent = "Waiting for Pi authentication...";
+
+        const result = await Pi.authenticate(
+          ["username"],
+          () => {
+            statusText.textContent =
+              "An incomplete payment needs attention.";
+          }
+        );
+
+        statusText.textContent =
+          "Signed in as " + result.user.username +
+          ". Demo only: server verification is not yet configured.";
+      } catch (error) {
+        statusText.textContent =
+          "Sign-in cancelled or failed. Please try again.";
+      } finally {
+        loginButton.disabled = false;
+      }
+    });
+  </script>
+</body>
+</html>
