@@ -86,9 +86,21 @@
           }
         );
 
+        statusText.textContent = "Verifying with server...";
+        
+        const verifyRes = await fetch("/api/auth/verify", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ accessToken: result.accessToken })
+        });
+
+        const verifyData = await verifyRes.json();
+        if (!verifyRes.ok || !verifyData.verified) {
+          throw new Error(verifyData.error || "Server verification failed");
+        }
+
         statusText.textContent =
-          "Signed in as " + result.user.username +
-          ". Demo only: server verification is not yet configured.";
+          "Signed in and verified as " + verifyData.user.username + "!";
       } catch (error) {
         statusText.textContent =
           "Sign-in cancelled or failed. Please try again.";
