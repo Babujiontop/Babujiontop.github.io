@@ -1,15 +1,21 @@
-
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>MIXCOFARM Sign-In Callback</title>
+  <title>MIXCOFARM MCFT Testnet</title>
 </head>
-<body style="background:#07111f;color:#fff;font-family:Arial,sans-serif;text-align:center;padding:40px 20px">
-  <h1>MIXCOFARM MCFT</h1>
-  <p>Pi Network sign-in callback page</p>
-  <p>This page is published and ready for callback configuration.</p>
-  <a href="/" style="color:#00e6a0">Return to homepage</a>
+<body>
+  <h1>MIXCOFARM MCFT Testnet</h1>
+  <p>Pi Network sign-in callback test page</p>
+  <p id="status">Callback page loaded. Login is not verified.</p>
+  <script>
+    const params = new URLSearchParams(location.hash.slice(1));
+    document.getElementById("status").textContent =
+      params.has("access_token")
+        ? "Sign-in response detected; verification is still required."
+        : "Page loaded successfully. No sign-in response detected.";
+    history.replaceState(null, "", location.pathname);
+  </script>
 </body>
 </html>
