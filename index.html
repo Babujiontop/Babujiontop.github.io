@@ -1,114 +1,55 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>MIXCOFARM MCFT Testnet</title>
   <script src="https://sdk.minepi.com/pi-sdk.js"></script>
   <style>
-    body {
-      margin: 0;
-      padding: 24px;
-      background: #080d12;
-      color: #f0f7f4;
-      font-family: Arial, sans-serif;
-    }
-    header, section {
-      max-width: 700px;
-      margin: 24px auto;
-      padding: 22px;
-      border: 1px solid #174b40;
-      border-radius: 16px;
-      background: #101a20;
-    }
-    h1, .green { color: #39df9a; }
-    p { line-height: 1.6; color: #c1d2ce; }
-    button {
-      padding: 14px 18px;
-      border: 0;
-      border-radius: 9px;
-      background: #39df9a;
-      color: #06120d;
-      font-weight: bold;
-      font-size: 16px;
-    }
-    .tag { color: #39df9a; }
+    body { font-family: Arial, sans-serif; background: #0f172a; color: #fff; text-align: center; padding: 50px; }
+    button { background: #34d399; color: #000; border: none; padding: 15px 30px; font-size: 18px; font-weight: bold; border-radius: 8px; cursor: pointer; }
   </style>
 </head>
 <body>
-  <header>
-    <p class="tag">MIXCOFARM • WEB3 FINANCE</p>
-    <h1>MIXCOFARM MCFT</h1>
-    <p>Payments, merchants and digital financial tools — built for the Pi Testnet prototype.</p>
-    <p><strong>Network:</strong> Pi Testnet</p>
-    <button id="login">Sign in with Pi</button>
-    <p id="status">Ready to connect.</p>
-  </header>
-
-  <section>
-    <h2>Financial Dashboard</h2>
-    <p>Customer access • Merchant tools • Transaction history</p>
-    <p class="green">Prototype mode — no real funds are handled.</p>
-  </section>
+  <h1>MIXCOFARM MCFT Testnet</h1>
+  <p>Payments, merchants and financial tools — built for the Pi Testnet prototype.</p>
+  <br>
+  <button onclick="onSignIn()">Sign in with Pi</button>
+  <p id="status" style="margin-top: 20px; color: #fbbf24;"></p>
 
   <script>
-    const statusText = document.getElementById("status");
-    const loginButton = document.getElementById("login");
+    Pi.init({ version: "2.0", sandbox: true });
 
-    try {
-      if (window.Pi) {
-        Pi.init({ version: "2.0", sandbox: true });
-      } else {
-        statusText.textContent =
-          "Open this app in Pi Browser to test Pi features.";
-      }
-    } catch (error) {
-      statusText.textContent = "Pi SDK initialization failed.";
-    }
-
-    loginButton.addEventListener("click", async () => {
+    async function onSignIn() {
+      const statusEl = document.getElementById("status");
+      statusEl.innerText = "Authenticating with Pi...";
+      
       try {
-        if (!window.Pi) {
-          statusText.textContent =
-            "Please open the app in Pi Browser.";
-          return;
-        }
-
-        loginButton.disabled = true;
-        statusText.textContent = "Waiting for Pi authentication...";
-
-        const result = await Pi.authenticate(
-          ["username"],
-          () => {
-            statusText.textContent =
-              "An incomplete payment needs attention.";
-          }
-        );
-
-        statusText.textContent = "Verifying with server...";
-        
-        const verifyRes = await fetch("/api/auth/verify", {
-          method: "POST",
-          headers: {
-              "Bypass-Tunnel-Reminder": "true", "Content-Type": "application/json" },
-          body: JSON.stringify({ accessToken: result.accessToken })
+        const auth = await Pi.authenticate(["username", "payments"], function(incompletePayment) {
+          console.log("Incomplete payment found:", incompletePayment);
         });
 
-        const verifyData = await verifyRes.json();
-        if (!verifyRes.ok || !verifyData.verified) {
-          throw new Error(verifyData.error || "Server verification failed");
-        }
+        statusEl.innerText = "Token received! Verifying with backend...";
 
-        statusText.textContent =
-          "Signed in and verified as " + verifyData.user.username + "!";
-      } catch (error) {
-        statusText.textContent =
-          "Sign-in cancelled or failed. Please try again.";
-      } finally {
-        loginButton.disabled = false;
+        const response = await fetch("https://mcftapptest.loca.lt/api/auth/verify", {
+          method: "POST",
+          headers: {
+            "Authorization": "Bearer " + auth.accessToken,
+            "Content-Type": "application/json"
+          }
+        });
+
+        const data = await response.json();
+        if (data.success) {
+          statusEl.innerText = "Success! Welcome, " + data.user.username;
+        } else {
+          statusEl.innerText = "Backend verification failed: " + (data.error || "Unknown error");
+        }
+      } catch (err) {
+        console.error("Auth Error:", err);
+        statusEl.innerText = "Pi Auth Error: " + (err.message || JSON.stringify(err));
       }
-    });
+    }
   </script>
 </body>
 </html>
