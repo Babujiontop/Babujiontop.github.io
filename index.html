@@ -18,38 +18,56 @@
   <p id="status" style="margin-top: 20px; color: #fbbf24;"></p>
 
   <script>
-    Pi.init({ version: "2.0", sandbox: true });
+   
+<script>
+  Pi.init({ version: "2.0", sandbox: true });
 
-    async function onSignIn() {
-      const statusEl = document.getElementById("status");
-      statusEl.innerText = "Authenticating with Pi...";
-      
-      try {
-        const auth = await Pi.authenticate(["username", "payments"], function(incompletePayment) {
-          console.log("Incomplete payment found:", incompletePayment);
-        });
+  async function onSignIn() {
+    const statusEl = document.getElementById("status");
+    statusEl.innerText = "Authenticating with Pi...";
 
-        statusEl.innerText = "Token received! Verifying with backend...";
+    try {
+      const auth = await Pi.authenticate(
+        ["username", "payments"],
+        function (incompletePayment) {
+          console.log("Incomplete payment:", incompletePayment);
+        }
+      );
 
-        const response = await fetch("https://mcftapptest.loca.lt/api/auth/verify", {
+      statusEl.innerText = "Verifying with MIXCOFARM backend...";
+
+      const response = await fetch(
+        "https://babujiontop-github-io.onrender.com/api/auth/verify",
+        {
           method: "POST",
           headers: {
-            "Authorization": "Bearer " + auth.accessToken,
             "Content-Type": "application/json"
-          }
-        });
-
-        const data = await response.json();
-        if (data.success) {
-          statusEl.innerText = "Success! Welcome, " + data.user.username;
-        } else {
-          statusEl.innerText = "Backend verification failed: " + (data.error || "Unknown error");
+          },
+          body: JSON.stringify({
+            accessToken: auth.accessToken
+          })
         }
-      } catch (err) {
-        console.error("Auth Error:", err);
-        statusEl.innerText = "Pi Auth Error: " + (err.message || JSON.stringify(err));
+      );
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || "Backend verification failed");
       }
+
+      if (data.verified && data.user) {
+        statusEl.innerText =
+          "Success! Welcome, " + data.user.username;
+      } else {
+        statusEl.innerText =
+          "Verification failed: " + (data.error || "Unknown error");
+      }
+    } catch (err) {
+      console.error("Sign-in error:", err);
+      statusEl.innerText =
+        "Sign-in error: " + (err.message || "Please try again");
     }
-  </script>
+  }
+</script>
 </body>
 </html>
