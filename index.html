@@ -3,26 +3,122 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#07111f">
   <title>MIXCOFARM MCFT Testnet</title>
   <script src="https://sdk.minepi.com/pi-sdk.js"></script>
   <style>
-    body { font-family: Arial, sans-serif; background: #0f172a; color: #fff; text-align: center; padding: 50px; }
-    button { background: #34d399; color: #000; border: none; padding: 15px 30px; font-size: 18px; font-weight: bold; border-radius: 8px; cursor: pointer; }
+    :root{--bg:#07111f;--panel:#0d1b2d;--panel2:#10243a;--line:#1e3852;--text:#f4f8fc;--muted:#9bb0c5;--green:#34d399;--blue:#60a5fa;--yellow:#fbbf24;--red:#fca5a5}
+    *{box-sizing:border-box} body{margin:0;background:radial-gradient(circle at top right,#12304a 0,#07111f 40%);font-family:Inter,Arial,sans-serif;color:var(--text);min-height:100vh}
+    button{font:inherit;cursor:pointer;border:0;border-radius:11px;padding:12px 16px;font-weight:700}
+    .primary{background:var(--green);color:#062017}.secondary{background:#17304a;color:var(--text);border:1px solid var(--line)}button:disabled{opacity:.6;cursor:wait}
+    .wrap{max-width:1100px;margin:auto;padding:22px 16px 40px}.topbar{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:24px}
+    .brand{display:flex;align-items:center;gap:10px;font-weight:800;letter-spacing:.3px}.logo{width:42px;height:42px;border-radius:13px;display:grid;place-items:center;background:linear-gradient(135deg,var(--green),var(--blue));color:#061421;font-weight:900}
+    .eyebrow{font-size:12px;color:var(--green);letter-spacing:1.6px;font-weight:800}.muted{color:var(--muted)}.small{font-size:12px}.pill{font-size:11px;color:var(--yellow);border:1px solid #6b5522;background:#2a2412;padding:6px 9px;border-radius:999px;white-space:nowrap}
+    .card{background:linear-gradient(145deg,rgba(16,36,58,.96),rgba(10,25,42,.96));border:1px solid var(--line);border-radius:18px;padding:20px;box-shadow:0 12px 30px rgba(0,0,0,.14)}
+    .login{max-width:480px;margin:7vh auto}.login h1{font-size:32px;margin:10px 0}.login p{line-height:1.6}.login button{width:100%;margin-top:14px}.status{min-height:24px;color:var(--yellow);overflow-wrap:anywhere}
+    .nav{display:flex;gap:8px;overflow:auto;margin:18px 0}.nav button{white-space:nowrap}.nav button.active{background:var(--green);color:#062017}
+    .grid{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));gap:14px}.span-8{grid-column:span 8}.span-4{grid-column:span 4}.span-6{grid-column:span 6}.span-12{grid-column:span 12}
+    h1,h2,h3,p{margin-top:0}h2{font-size:20px;margin-bottom:8px}h3{font-size:15px;margin-bottom:8px}.balance{font-size:38px;font-weight:850;letter-spacing:-1px;margin:14px 0 5px}.balance small{font-size:14px;color:var(--muted);letter-spacing:0;font-weight:600}
+    .actions{display:flex;gap:9px;flex-wrap:wrap;margin-top:20px}.metric{font-size:24px;font-weight:800;margin:12px 0 4px}.list{display:grid;gap:0}.tx{display:flex;align-items:center;gap:12px;padding:13px 0;border-bottom:1px solid rgba(30,56,82,.8)}.tx:last-child{border-bottom:0}.txicon{width:38px;height:38px;display:grid;place-items:center;border-radius:12px;background:#17304a}.txinfo{flex:1;min-width:0}.txinfo strong{display:block;font-size:14px}.txinfo span{font-size:12px;color:var(--muted)}.amount{font-weight:800;font-size:13px;text-align:right}.green{color:var(--green)}.blue{color:var(--blue)}
+    .notice{border:1px solid #6b5522;background:rgba(42,36,18,.7);color:#f8d982;padding:12px 14px;border-radius:12px;font-size:12px;line-height:1.5;margin:14px 0}
+    .hidden{display:none!important}.profileline{padding:12px 0;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;gap:16px}.profileline:last-child{border-bottom:0}.foot{text-align:center;color:var(--muted);font-size:12px;margin-top:22px}
+    @media(max-width:700px){.span-8,.span-4,.span-6{grid-column:span 12}.wrap{padding:16px 12px 30px}.balance{font-size:32px}.topbar{align-items:flex-start}.login h1{font-size:27px}}
   </style>
 </head>
 <body>
-  <h1>MIXCOFARM MCFT Testnet</h1>
-  <p>Payments, merchants and financial tools — built for the Pi Testnet prototype.</p>
-  <br>
-  <button onclick="onSignIn()">Sign in with Pi</button>
-  <p id="status" style="margin-top: 20px; color: #fbbf24;"></p>
+<div class="wrap">
+  <header class="topbar">
+    <div class="brand"><div class="logo">M</div><div><div>MIXCOFARM</div><div class="small muted">MCFT TESTNET</div></div></div>
+    <span class="pill">TESTNET · DEMO ONLY</span>
+  </header>
 
+  <section id="loginView" class="card login">
+    <div class="eyebrow">WEB3 FINANCE PROTOTYPE</div>
+    <h1>Welcome to MCFT</h1>
+    <p class="muted">Sign in with Pi to open your customer dashboard. This prototype uses demo balances and sample activity only.</p>
+    <button id="signInBtn" class="primary" onclick="onSignIn()">Sign in with Pi</button>
+    <p id="status" class="status" role="status" aria-live="polite"></p>
+    <div class="notice">Sandbox prototype only. No real funds are stored, and no real payments are sent.</div>
+  </section>
+
+  <main id="dashboardView" class="hidden">
+    <div class="topbar">
+      <div><div class="eyebrow">CUSTOMER DASHBOARD</div><h1 style="margin:6px 0 0">Hello, <span id="username">Customer</span></h1><div class="muted small">Your MIXCOFARM testnet overview</div></div>
+      <button class="secondary" onclick="signOut()">Sign out</button>
+    </div>
+
+    <nav class="nav" aria-label="Dashboard sections">
+      <button class="secondary active" data-tab="overview" onclick="showTab('overview',this)">Overview</button>
+      <button class="secondary" data-tab="activity" onclick="showTab('activity',this)">Activity</button>
+      <button class="secondary" data-tab="profile" onclick="showTab('profile',this)">Profile</button>
+    </nav>
+
+    <section id="overviewTab" class="tabPanel">
+      <div class="grid">
+        <article class="card span-8">
+          <div class="eyebrow">DEMO WALLET BALANCE</div>
+          <div class="balance">π 125.00 <small>demo Pi</small></div>
+          <div class="muted small">Illustrative balance only · not a real wallet balance</div>
+          <div class="actions">
+            <button class="primary" onclick="demoAction('Send demo payment')">Send demo payment</button>
+            <button class="secondary" onclick="demoAction('Receive demo payment')">Receive</button>
+            <button class="secondary" onclick="demoAction('Add demo funds')">Add demo funds</button>
+          </div>
+          <div id="actionMessage" class="status" role="status" aria-live="polite" style="margin-top:14px"></div>
+        </article>
+        <article class="card span-4">
+          <h2>Account status</h2>
+          <div class="metric green">Signed in</div>
+          <p class="muted small">Pi identity verified by the MIXCOFARM backend for this session.</p>
+          <div class="notice">Demo mode: actions below do not move Pi or other assets.</div>
+        </article>
+        <article class="card span-6">
+          <h2>Quick summary</h2>
+          <div class="profileline"><span class="muted">Demo incoming</span><strong class="green">+ π 150.00</strong></div>
+          <div class="profileline"><span class="muted">Demo outgoing</span><strong>− π 25.00</strong></div>
+          <div class="profileline"><span class="muted">Demo transactions</span><strong>3</strong></div>
+        </article>
+        <article class="card span-6">
+          <h2>Recent activity</h2>
+          <div class="list">
+            <div class="tx"><div class="txicon">↓</div><div class="txinfo"><strong>Demo reward</strong><span>Sample record · Today</span></div><div class="amount green">+ π 100.00</div></div>
+            <div class="tx"><div class="txicon">↔</div><div class="txinfo"><strong>Demo merchant payment</strong><span>Sample record · Yesterday</span></div><div class="amount">− π 25.00</div></div>
+            <div class="tx"><div class="txicon">↓</div><div class="txinfo"><strong>Demo credit</strong><span>Sample record · Earlier</span></div><div class="amount green">+ π 50.00</div></div>
+          </div>
+          <button class="secondary" style="margin-top:14px" onclick="showTab('activity',document.querySelector('[data-tab=activity]'))">View all activity</button>
+        </article>
+      </div>
+    </section><section id="activityTab" class="tabPanel hidden">
+      <div class="card">
+        <h2>Activity history</h2><p class="muted small">All entries below are illustrative sample data, not real transactions.</p>
+        <div class="list">
+          <div class="tx"><div class="txicon">↓</div><div class="txinfo"><strong>Demo reward</strong><span>MCFT demo environment · Today</span></div><div class="amount green">+ π 100.00</div></div>
+          <div class="tx"><div class="txicon">↔</div><div class="txinfo"><strong>Demo merchant payment</strong><span>Sample Coffee Merchant · Yesterday</span></div><div class="amount">− π 25.00</div></div>
+          <div class="tx"><div class="txicon">↓</div><div class="txinfo"><strong>Demo credit</strong><span>MCFT demo environment · Earlier</span></div><div class="amount green">+ π 50.00</div></div>
+        </div>
+      </div>
+    </section>
+
+    <section id="profileTab" class="tabPanel hidden">
+      <div class="card">
+        <h2>Your profile</h2>
+        <div class="profileline"><span class="muted">Pi username</span><strong id="profileUsername">—</strong></div>
+        <div class="profileline"><span class="muted">Verification</span><strong class="green">Verified for this session</strong></div>
+        <div class="profileline"><span class="muted">Environment</span><strong>Pi Sandbox / Testnet prototype</strong></div>
+        <div class="notice">This prototype does not store your Pi access token in the browser. Sign out clears the displayed session.</div>
+      </div>
+    </section>
+  </main>
+  <footer class="foot">MIXCOFARM MCFT · Prototype only · Not a bank or licensed financial service</footer>
+</div>
 
 <script>
   Pi.init({ version: "2.0", sandbox: true });
 
   async function onSignIn() {
     const statusEl = document.getElementById("status");
+    const btn = document.getElementById("signInBtn");
+    btn.disabled = true;
     statusEl.innerText = "Authenticating with Pi...";
 
     try {
@@ -39,33 +135,48 @@
         "https://babujiontop-github-io.onrender.com/api/auth/verify",
         {
           method: "POST",
-          headers: {
-            "Content-Type": "application/json"
-          },
-          body: JSON.stringify({
-            accessToken: auth.accessToken
-          })
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ accessToken: auth.accessToken })
         }
       );
 
       const data = await response.json();
-
-      if (!response.ok) {
+      if (!response.ok || !data.verified || !data.user) {
         throw new Error(data.error || "Backend verification failed");
       }
 
-      if (data.verified && data.user) {
-        statusEl.innerText =
-          "Success! Welcome, " + data.user.username;
-      } else {
-        statusEl.innerText =
-          "Verification failed: " + (data.error || "Unknown error");
-      }
+      const username = data.user.username;
+      document.getElementById("username").textContent = username;
+      document.getElementById("profileUsername").textContent = username;
+      document.getElementById("loginView").classList.add("hidden");
+      document.getElementById("dashboardView").classList.remove("hidden");
+      statusEl.innerText = "";
     } catch (err) {
       console.error("Sign-in error:", err);
-      statusEl.innerText =
-        "Sign-in error: " + (err.message || "Please try again");
+      statusEl.innerText = "Sign-in error: " + (err.message || "Please try again");
+      btn.disabled = false;
     }
+  }
+
+  function showTab(tab, button) {
+    document.querySelectorAll(".tabPanel").forEach(panel => panel.classList.add("hidden"));
+    document.getElementById(tab + "Tab").classList.remove("hidden");
+    document.querySelectorAll(".nav button").forEach(btn => btn.classList.remove("active"));
+    if (button) button.classList.add("active");
+  }
+
+  function demoAction(action) {
+    const message = document.getElementById("actionMessage");
+    message.textContent = action + ": demo only. No payment was sent and no balance changed.";
+  }
+
+  function signOut() {
+    document.getElementById("dashboardView").classList.add("hidden");
+    document.getElementById("loginView").classList.remove("hidden");
+    document.getElementById("status").textContent = "Signed out of the demo dashboard.";
+    document.getElementById("signInBtn").disabled = false;
+    document.getElementById("actionMessage").textContent = "";
+    showTab("overview", document.querySelector('[data-tab="overview"]'));
   }
 </script>
 </body>
