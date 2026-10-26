@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#07111f">
+<title>MIXCOFARM MCFT Merchant Testnet</title>
+<script src="https://sdk.minepi.com/pi-sdk.js"></script>
+<style>
+:root{--bg:#07111f;--panel:#0d1b2d;--panel2:#10243a;--line:#1e3852;--text:#f4f8fc;--muted:#9bb0c5;--green:#34d399;--blue:#60a5fa;--yellow:#fbbf24;--red:#fca5a5}
+*{box-sizing:border-box}body{margin:0;background:radial-gradient(circle at top right,#12304a 0,#07111f 42%);font-family:Arial,sans-serif;color:var(--text);min-height:100vh}
+button,input,select{font:inherit}button{cursor:pointer;border:0;border-radius:11px;padding:12px 15px;font-weight:700}.primary{background:var(--green);color:#062017}.secondary{background:#17304a;color:var(--text);border:1px solid var(--line)}button:disabled{opacity:.6;cursor:wait}
+.wrap{max-width:1120px;margin:auto;padding:20px 14px 36px}.topbar{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:22px}.brand{display:flex;align-items:center;gap:10px;font-weight:800}.logo{width:42px;height:42px;border-radius:13px;display:grid;place-items:center;background:linear-gradient(135deg,var(--green),var(--blue));color:#061421;font-weight:900}
+.eyebrow{font-size:12px;color:var(--green);letter-spacing:1.5px;font-weight:800}.muted{color:var(--muted)}.small{font-size:12px}.pill{font-size:11px;color:var(--yellow);border:1px solid #6b5522;background:#2a2412;padding:6px 9px;border-radius:999px;white-space:nowrap}
+.card{background:linear-gradient(145deg,rgba(16,36,58,.96),rgba(10,25,42,.96));border:1px solid var(--line);border-radius:18px;padding:19px;box-shadow:0 12px 30px #0002}.login{max-width:480px;margin:7vh auto}.login h1{font-size:30px;margin:10px 0}.login p{line-height:1.6}.login button{width:100%;margin-top:14px}.status{min-height:24px;color:var(--yellow);overflow-wrap:anywhere}
+.nav{display:flex;gap:8px;overflow:auto;margin:18px 0}.nav button{white-space:nowrap}.nav button.active{background:var(--green);color:#062017}.grid{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));gap:14px}.s8{grid-column:span 8}.s6{grid-column:span 6}.s4{grid-column:span 4}.s12{grid-column:span 12}
+h1,h2,h3,p{margin-top:0}h2{font-size:20px;margin-bottom:8px}h3{font-size:15px;margin-bottom:8px}.metric{font-size:27px;font-weight:850;margin:12px 0 4px}.notice{border:1px solid #6b5522;background:#2a2412aa;color:#f8d982;padding:12px 14px;border-radius:12px;font-size:12px;line-height:1.5;margin:14px 0}
+.hidden{display:none!important}.navview{display:none}.navview.active{display:block}.field{display:grid;gap:6px;margin:12px 0}.field label{font-size:12px;color:var(--muted)}input,select{width:100%;background:#071525;color:var(--text);border:1px solid var(--line);border-radius:10px;padding:12px} .row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}.row>*{flex:1}.list{display:grid}.item{display:flex;justify-content:space-between;gap:12px;padding:13px 0;border-bottom:1px solid var(--line)}.item:last-child{border-bottom:0}.tag{font-size:11px;padding:5px 8px;border-radius:999px;background:#153b32;color:var(--green)}.qrbox{width:176px;height:176px;background:#f7fafc;border-radius:12px;margin:16px auto;padding:10px;display:grid;grid-template-columns:repeat(11,1fr);gap:2px}.qrbox span{background:#10243a;border-radius:1px}.qrbox span:nth-child(3n),.qrbox span:nth-child(7n+1){background:#f7fafc}.foot{text-align:center;color:var(--muted);font-size:12px;margin-top:22px}
+@media(max-width:700px){.s8,.s6,.s4{grid-column:span 12}.wrap{padding:15px 11px 28px}.topbar{align-items:flex-start}.metric{font-size:24px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header class="topbar"><div class="brand"><div class="logo">M</div><div>MIXCOFARM<div class="small muted">MCFT TESTNET · MERCHANT</div></div></div><span class="pill">SANDBOX · DEMO ONLY</span></header>
+<section id="loginView" class="card login">
+<div class="eyebrow">MERCHANT PORTAL</div><h1>Welcome, Merchant</h1>
+<p class="muted">Sign in with Pi to open your merchant workspace. Payment requests, QR display, and sales records on this page are demonstrations only.</p>
+<button id="signInBtn" class="primary" onclick="onSignIn()">Sign in with Pi</button>
+<p id="status" class="status" role="status" aria-live="polite"></p>
+<div class="notice">Sandbox prototype only. No real payment requests are created, no QR code is payable, and no real funds are received.</div>
+</section>
+<main id="dashboardView" class="hidden">
+<div class="topbar"><div><div class="eyebrow">MERCHANT DASHBOARD</div><h1 style="margin:6px 0 0">Hello, <span id="username">Merchant</span></h1><div class="muted small">Merchant workspace · testnet simulation</div></div><button class="secondary" onclick="signOut()">Sign out</button></div>
+<div class="notice">DEMO MODE: Sales, amounts, payment requests, and QR display below are sample data. This prototype does not process payments.</div>
+<nav class="nav">
+<button class="secondary active" data-tab="overview" onclick="showTab('overview')">Overview</button>
+<button class="secondary" data-tab="request" onclick="showTab('request')">Payment request</button>
+<button class="secondary" data-tab="sales" onclick="showTab('sales')">Sales records</button>
+<button class="secondary" data-tab="profile" onclick="showTab('profile')">Merchant profile</button>
+</nav>
+<section id="overview" class="navview active">
+<div class="grid">
+<div class="card s4"><div class="muted small">Demo sales today</div><div class="metric">π 18.50</div><div class="small green">Sample total only</div></div>
+<div class="card s4"><div class="muted small">Demo transactions</div><div class="metric">7</div><div class="small muted">Illustrative records</div></div>
+<div class="card s4"><div class="muted small">Pending requests</div><div class="metric" id="pendingCount">1</div><div class="small muted">Local demo only</div></div>
+<div class="card s8"><h2>Recent sales</h2><div class="list">
+<div class="item"><div><strong>Demo sale #MC-104</strong><div class="small muted">Today · 10:42 AM</div></div><div style="text-align:right"><strong class="green">+ π 5.00</strong><div class="small muted">Sample</div></div></div>
+<div class="item"><div><strong>Demo sale #MC-103</strong><div class="small muted">Today · 09:18 AM</div></div><div style="text-align:right"><strong class="green">+ π 3.50</strong><div class="small muted">Sample</div></div></div>
+<div class="item"><div><strong>Demo sale #MC-102</strong><div class="small muted">Yesterday</div></div><div style="text-align:right"><strong class="green">+ π 10.00</strong><div class="small muted">Sample</div></div></div>
+</div></div>
+<div class="card s4"><h2>Quick actions</h2><p class="muted small">Try the simulated merchant tools.</p><button class="primary" style="width:100%;margin:6px 0" onclick="showTab('request')">Create demo request</button><button class="secondary" style="width:100%;margin:6px 0" onclick="showTab('sales')">View sales records</button></div>
+</div></section>
+<section id="request" class="navview">
+<div class="grid">
+<div class="card s6"><h2>Create a demo payment request</h2><p class="muted small">This form only creates a local sample request. It does not call Pi payments or move funds.</p>
+<div class="field"><label for="amount">Amount (demo π)</label><input id="amount" type="number" min="0.01" max="100000" step="0.01" placeholder="e.g. 2.50"></div>
+<div class="field"><label for="description">Description</label><input id="description" maxlength="80" placeholder="e.g. Phone charging"></div>
+<button class="primary" onclick="createRequest()">Create demo request</button><p id="requestStatus" class="status" role="status" aria-live="polite"></p></div>
+<div class="card s6"><h2>Demo QR payment display</h2><p class="muted small">Decorative placeholder only — it is not a scannable payment QR.</p><div class="qrbox" aria-label="Decorative demo QR placeholder" id="qrbox"></div><div id="qrCaption" class="small muted" style="text-align:center">No active demo request</div></div>
+<div class="card s12"><h2>Recent demo requests</h2><div id="requestList" class="list"><div class="item"><div><strong>Request DEMO-001</strong><div class="small muted">Phone charging · Sample</div></div><div class="tag">Pending demo</div></div></div></div>
+</div></section>
+<section id="sales" class="navview"><div class="card"><h2>Sales records</h2><p class="muted small">Sample records only; not connected to a real ledger.</p><div class="list" id="salesList">
+<div class="item"><div><strong>MC-104 · Phone charging</strong><div class="small muted">Today, 10:42 AM · Demo</div></div><strong class="green">π 5.00</strong></div>
+<div class="item"><div><strong>MC-103 · Phone accessories</strong><div class="small muted">Today, 09:18 AM · Demo</div></div><strong class="green">π 3.50</strong></div>
+<div class="item"><div><strong>MC-102 · Merchant sale</strong><div class="small muted">Yesterday · Demo</div></div><strong class="green">π 10.00</strong></div>
+</div></div></section>
+<section id="profile" class="navview"><div class="grid"><div class="card s6"><h2>Merchant profile</h2><div class="item"><span class="muted">Pi username</span><strong id="profileUsername">—</strong></div><div class="item"><span class="muted">Account type</span><strong>Merchant demo</strong></div><div class="item"><span class="muted">Verification</span><strong class="green">Pi sign-in verified</strong></div></div><div class="card s6"><h2>Merchant setup (demo)</h2><div class="field"><label for="storeName">Store name</label><input id="storeName" maxlength="80" placeholder="Your store name"></div><div class="field"><label for="category">Business category</label><select id="category"><option>Retail</option><option>Phone charging and accessories</option><option>Food and groceries</option><option>Transport</option><option>Services</option><option>Other</option></select></div><button class="primary" onclick="saveProfile()">Save demo profile</button><p id="profileStatus" class="status" role="status" aria-live="polite"></p></div></div></section>
+</main>
+<div class="foot">MIXCOFARM MCFT · Testnet merchant prototype · Not a licensed financial service</div>
+</div>
+<script>
+Pi.init({version:"2.0",sandbox:true});
+async function onSignIn(){
+ const statusEl=document.getElementById("status"),btn=document.getElementById("signInBtn");
+ btn.disabled=true;statusEl.textContent="Authenticating with Pi...";
+ try{
+  const auth=await Pi.authenticate(["username","payments"],function(incompletePayment){console.log("Incomplete demo payment:",incompletePayment);});
+  statusEl.textContent="Verifying with MIXCOFARM backend...";
+  const response=await fetch("https://babujiontop-github-io.onrender.com/api/auth/verify",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({accessToken:auth.accessToken})});
+  const data=await response.json();
+  if(!response.ok||!data.verified||!data.user)throw new Error(data.error||"Backend verification failed");
+  document.getElementById("username").textContent=data.user.username;
+  document.getElementById("profileUsername").textContent=data.user.username;
+  document.getElementById("loginView").classList.add("hidden");
+  document.getElementById("dashboardView").classList.remove("hidden");
+ }catch(err){statusEl.textContent="Sign-in failed: "+(err&&err.message?err.message:"Please try again.");}
+ finally{btn.disabled=false;}
+}
+function signOut(){document.getElementById("dashboardView").classList.add("hidden");document.getElementById("loginView").classList.remove("hidden");document.getElementById("status").textContent="You have signed out.";window.scrollTo(0,0);}
+function showTab(id){document.querySelectorAll(".navview").forEach(s=>s.classList.remove("active"));document.getElementById(id).classList.add("active");document.querySelectorAll(".nav button").forEach(b=>b.classList.toggle("active",b.dataset.tab===id));}
+function createRequest(){
+ const amount=Number(document.getElementById("amount").value),desc=document.getElementById("description").value.trim(),status=document.getElementById("requestStatus");
+ if(!Number.isFinite(amount)||amount<=0){status.textContent="Enter a demo amount greater than zero.";return;}
+ const reqId="DEMO-"+String(Date.now()).slice(-6),label=desc||"Demo merchant sale";
+ status.textContent="Created local demo request "+reqId+". No payment was sent.";
+ document.getElementById("qrCaption").textContent="Demo request "+reqId+" · π "+amount.toFixed(2)+" · "+label;
+ const list=document.getElementById("requestList"),item=document.createElement("div");item.className="item";
+ const left=document.createElement("div"),strong=document.createElement("strong"),sub=document.createElement("div");strong.textContent="Request "+reqId;sub.className="small muted";sub.textContent=label+" · π "+amount.toFixed(2);
+ const right=document.createElement("div");right.className="tag";right.textContent="Pending demo";left.append(strong,sub);item.append(left,right);list.prepend(item);
+ document.getElementById("pendingCount").textContent=String(Number(document.getElementById("pendingCount").textContent)+1);
+}
+function saveProfile(){const name=document.getElementById("storeName").value.trim();document.getElementById("profileStatus").textContent=name?"Demo profile saved locally for this page session: "+name+".":"Enter a store name first.";}
+(function drawDecorativeQr(){const q=document.getElementById("qrbox");for(let i=0;i<121;i++){const s=document.createElement("span");q.appendChild(s);}})();
+</script>
+</body>
+</html>
