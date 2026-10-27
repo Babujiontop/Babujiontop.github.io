@@ -113,7 +113,7 @@ const server = http.createServer(async (req, res) => {console.log("REQUEST:", re
   }
 
   
-  if (req.method === "GET" && req.url === "/health") {
+  if (req.method === "GET" && pathname === "/health") {
     return sendJson(res, 200, {
       status: "ok",
       service: "MIXCOFARM MCFT backend"
@@ -129,7 +129,7 @@ const server = http.createServer(async (req, res) => {console.log("REQUEST:", re
 
   if (
     req.method === "POST" &&
-    req.url === "/api/auth/verify"
+    pathname === "/api/auth/verify"
   ) {
     const input = await readJson(req, res, 8192);
     if (input === null) return;
@@ -190,7 +190,7 @@ const server = http.createServer(async (req, res) => {console.log("REQUEST:", re
 
   if (
     req.method === "POST" &&
-    req.url === "/api/merchant/registrations"
+    pathname === "/api/merchant/registrations"
   ) {
     if (!pool) {
       return sendJson(res, 503, {
