@@ -1,22 +1,113 @@
 
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#07111f">
+<title>MIXCOFARM MCFT — Merchant Registration</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;padding:20px;background:#07111f;color:#f4f8fc;font-family:Arial,sans-serif}
+main{max-width:760px;margin:auto}
+.card{background:#10243a;border:1px solid #1e3852;border-radius:16px;padding:20px;margin-bottom:16px}
+h1{font-size:26px}
+p{line-height:1.5}
+label{display:block;margin:14px 0 6px;color:#b7c9dc;font-size:14px}
+input,select,textarea{width:100%;padding:12px;border-radius:9px;border:1px solid #34516c;background:#071525;color:white;font:inherit}
+input[type=checkbox]{width:auto}
+button{padding:13px 16px;border:0;border-radius:9px;font-weight:bold;cursor:pointer;margin:12px 8px 0 0}
+.primary{background:#34d399;color:#062017}
+.secondary{background:#25415b;color:white}
+.muted{color:#9bb0c5;font-size:13px}
+.notice{background:#2a2412;padding:12px;border-radius:9px;color:#f8d982;font-size:13px}
+.status{margin-top:16px;padding:14px;border:1px solid #34516c;border-radius:9px;overflow-wrap:anywhere}
+a{color:#34d399}
+</style>
+</head>
+<body>
+<main>
+<div class="card">
+<p class="muted">MIXCOFARM MCFT TESTNET · MERCHANT ONBOARDING</p>
+<h1>Register your business</h1>
+<p class="muted">Submit a demo merchant registration for review.</p>
+<div class="notice">Demo only. Do not enter passwords, national ID numbers, bank details, wallet passphrases, or other sensitive information. This does not create a verified merchant account.</div>
+
+<form id="registrationForm">
+<label for="owner">Contact person / owner name *</label>
+<input id="owner" name="owner" maxlength="80" required placeholder="Demo name">
+
+<label for="store">Store / business name *</label>
+<input id="store" name="store" maxlength="100" required placeholder="Demo Phone Hub">
+
+<label for="category">Business category *</label>
+<select id="category" name="category" required>
+<option value="">Choose category</option>
+<option>Phone charging and accessories</option>
+<option>Retail</option>
+<option>Food and groceries</option>
+<option>Transport and logistics</option>
+<option>Education</option>
+<option>Renewable energy</option>
+<option>Professional services</option>
+<option>Other</option>
+</select>
+
+<label for="country">Country *</label>
+<select id="country" name="country" required>
+<option value="">Choose country</option>
+<option>Nigeria</option>
+<option>Saudi Arabia</option>
+<option>Other</option>
+</select>
+
+<label for="email">Business email (optional)</label>
+<input id="email" name="email" type="email" maxlength="120" placeholder="demo@example.com">
+
+<label for="phone">Business contact number (optional)</label>
+<input id="phone" name="phone" type="tel" maxlength="30" placeholder="Test number only">
+
+<label for="location">Town / city (optional)</label>
+<input id="location" name="location" maxlength="100" placeholder="Town or city">
+
+<label for="description">Business description (optional)</label>
+<textarea id="description" name="description" maxlength="500" placeholder="Describe the business"></textarea>
+
+<label><input id="consent" type="checkbox" required> I understand this is a demo registration and is not proof of approval.</label>
+
+<button class="primary" type="submit">Submit demo registration</button>
+<button class="secondary" type="reset" id="resetBtn">Clear form</button>
+</form>
+
+<div id="result" class="status" hidden aria-live="polite"></div>
+</div>
+
+<div class="card">
+<h2>Registration status</h2>
+<div id="statusPreview" class="status">No registration submitted yet.</div>
+<p><a href="https://babujiontop.github.io/mixcofarm_merchant_dashboard.html">Back to Merchant Portal</a></p>
+<p><a href="https://babujiontop.github.io/">Customer Portal</a></p>
+</div>
+</main>
+
+<script>
 const form = document.getElementById('registrationForm');
 const result = document.getElementById('result');
 const preview = document.getElementById('statusPreview');
 const submitButton = form.querySelector('button[type="submit"]');
 
-form.addEventListener('submit', async (e) => {
-  e.preventDefault();
+form.addEventListener('submit', async function(event) {
+  event.preventDefault();
 
   if (!form.reportValidity()) return;
 
   const data = Object.fromEntries(new FormData(form).entries());
-
   data.consent = document.getElementById('consent').checked;
   data.city = data.location || '';
   delete data.location;
 
-  result.classList.remove('hidden');
-  result.textContent = 'Sending demo registration to the server...';
+  result.hidden = false;
+  result.textContent = 'Sending registration to the server...';
   submitButton.disabled = true;
 
   try {
@@ -24,7 +115,7 @@ form.addEventListener('submit', async (e) => {
       'https://babujiontop-github-io.onrender.com/api/merchant/registrations',
       {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {'Content-Type': 'application/json'},
         body: JSON.stringify(data)
       }
     );
@@ -32,49 +123,36 @@ form.addEventListener('submit', async (e) => {
     const reply = await response.json();
 
     if (!response.ok || reply.saved !== true) {
-      throw new Error(reply.error || 'Registration could not be saved.');
+      throw new Error(reply.error || 'The server did not confirm the registration.');
     }
 
     result.replaceChildren();
 
-    const heading = document.createElement('h2');
+    const heading = document.createElement('h3');
     heading.textContent = 'Registration received';
 
     const reference = document.createElement('p');
     reference.textContent = 'Reference: ' + reply.reference;
 
-    const status = document.createElement('span');
-    status.className = 'statuspill';
-    status.textContent = 'Pending demo review';
+    const status = document.createElement('p');
+    status.textContent = 'Status: Pending demo review';
 
     const note = document.createElement('p');
-    note.className = 'muted small';
-    note.textContent =
-      'Your demo application was saved by the server. It has not been verified or approved.';
+    note.className = 'muted';
+    note.textContent = 'Saved by the server. This registration has not been verified or approved.';
 
     result.append(heading, reference, status, note);
 
-    preview.replaceChildren();
-
-    [
-      ['Business: ', data.store],
-      ['Category: ', data.category],
-      ['Country: ', data.country]
-    ].forEach(([label, value]) => {
-      const p = document.createElement('p');
-      p.textContent = label + (value || 'Not provided');
-      preview.appendChild(p);
-    });
-
-    const previewStatus = document.createElement('span');
-    previewStatus.className = 'statuspill';
-    previewStatus.textContent = 'Pending demo review';
-    preview.appendChild(previewStatus);
+    preview.textContent =
+      'Business: ' + data.store +
+      ' | Category: ' + data.category +
+      ' | Country: ' + data.country +
+      ' | Status: Pending demo review';
 
   } catch (error) {
     result.replaceChildren();
 
-    const heading = document.createElement('h2');
+    const heading = document.createElement('h3');
     heading.textContent = 'Registration not confirmed';
 
     const message = document.createElement('p');
@@ -84,11 +162,14 @@ form.addEventListener('submit', async (e) => {
     result.append(heading, message);
   } finally {
     submitButton.disabled = false;
-    result.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
   }
 });
 
-document.getElementById('resetBtn').addEventListener('click', () => {
-  result.classList.add('hidden');
-  preview.textContent = 'No demo registration submitted yet.';
+document.getElementById('resetBtn').addEventListener('click', function() {
+  result.hidden = true;
+  result.replaceChildren();
+  preview.textContent = 'No registration submitted yet.';
 });
+</script>
+</body>
+</html>
