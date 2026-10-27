@@ -86,7 +86,7 @@ function cleanText(value, maxLength) {
   return value.trim().slice(0, maxLength);
 }
 
-const server = http.createServer(async (req, res) => {console.log("REQUEST:", req.method, req.url);
+const server = http.createServer(async (req, res) => {console.log("REQUEST:", req.method, req.url);const pathname = new URL(req.url, "http://localhost").pathname.replace(/\/+$/, "") || "/";
  const pathname = new URL(req.url, "http://localhost").pathname.replace(/\/+$/, "") || "/"; const origin = req.headers.origin;
 
   res.setHeader("Vary", "Origin");
