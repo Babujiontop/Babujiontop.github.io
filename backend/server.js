@@ -87,7 +87,7 @@ function cleanText(value, maxLength) {
 }
 
 const server = http.createServer(async (req, res) => {console.log("REQUEST:", req.method, req.url);
-  const origin = req.headers.origin;
+ const pathname = new URL(req.url, "http://localhost").pathname.replace(/\/+$/, "") || "/"; const origin = req.headers.origin;
 
   res.setHeader("Vary", "Origin");
   res.setHeader("Content-Type", "application/json; charset=utf-8");
