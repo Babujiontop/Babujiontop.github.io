@@ -112,6 +112,7 @@ const server = http.createServer(async (req, res) => {
     return res.end();
   }
 
+  
   if (req.method === "GET" && req.url === "/health") {
     return sendJson(res, 200, {
       status: "ok",
@@ -120,10 +121,11 @@ const server = http.createServer(async (req, res) => {
   }
 
   if (origin && origin !== ALLOWED_ORIGIN) {
-  // ...
+    return sendJson(res, 403, {
+      error: "Origin not allowed"
+    });
   }
-    return sendJson(res, 403, { error: "Origin not allowed" });
-  }
+
 
   if (
     req.method === "POST" &&
