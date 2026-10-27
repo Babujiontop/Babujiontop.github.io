@@ -86,13 +86,17 @@ function cleanText(value, maxLength) {
   return value.trim().slice(0, maxLength);
 }
 
-const server = http.createServer(async (req, res) => {console.log("REQUEST:", req.method, req.url);const pathname = new URL(req.url, "http://localhost").pathname.replace(/\/+$/, "") || "/";
- const pathname = new URL(req.url, "http://localhost").pathname.replace(/\/+$/, "") || "/"; const origin = req.headers.origin;
+
+const server = http.createServer(async (req, res) => {
+  console.log("REQUEST:", req.method, req.url);
+  const pathname = new URL(req.url, "http://localhost").pathname.replace(/\/+$/, "") || "/";
+  const origin = req.headers.origin;
 
   res.setHeader("Vary", "Origin");
   res.setHeader("Content-Type", "application/json; charset=utf-8");
   res.setHeader("X-Content-Type-Options", "nosniff");
   res.setHeader("Cache-Control", "no-store");
+
 
   if (origin === ALLOWED_ORIGIN) {
     res.setHeader("Access-Control-Allow-Origin", ALLOWED_ORIGIN);
