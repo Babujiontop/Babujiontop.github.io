@@ -44,6 +44,45 @@ async function initDatabase() {
       )
     `);
 
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS admin_accounts (
+        id BIGSERIAL PRIMARY KEY,
+        username VARCHAR(80) UNIQUE NOT NULL,
+        password_hash TEXT NOT NULL,
+        mfa_secret TEXT NOT NULL,
+        is_active BOOLEAN NOT NULL DEFAULT TRUE,
+        created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+        updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+      );
+
+      CREATE TABLE IF NOT EXISTS admin_sessions (
+        id BIGSERIAL PRIMARY KEY,
+        token_hash CHAR(64) UNIQUE NOT NULL,
+        admin_id BIGINT NOT NULL REFERENCES admin_accounts(id) ON DELETE CASCADE,
+        expires_at TIMESTAMPTZ NOT NULL,
+        created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+      );
+
+      CREATE INDEX IF NOT EXISTS admin_sessions_expiry_idx
+        ON admin_sessions (expires_at);
+
+      CREATE TABLE IF NOT EXISTS admin_recovery_codes (
+        id BIGSERIAL PRIMARY KEY,
+        admin_id BIGINT NOT NULL REFERENCES admin_accounts(id) ON DELETE CASCADE,
+        code_hash CHAR(64) NOT NULL,
+        used_at TIMESTAMPTZ,
+        created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+      );
+
+      CREATE TABLE IF NOT EXISTS admin_audit_log (
+        id BIGSERIAL PRIMARY KEY,
+        admin_id BIGINT REFERENCES admin_accounts(id) ON DELETE SET NULL,
+        event_type VARCHAR(80) NOT NULL,
+        details JSONB NOT NULL DEFAULT '{}'::jsonb,
+        created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+      );
+    `);
+
     dbReady = true;
     console.log("Merchant registration database is ready");
     return true;
