@@ -1,33 +1,72 @@
+
 const express = require("express");
 const cors = require("cors");
-const app = express();
-app.use(express.json());
-app.use(cors());
 
-// Handle browser test (GET)
-app.get("/api/auth/verify", (req, res) => {
-  res.json({ status: "Backend is online! Send a POST request with your Pi token to verify." });
+const app = express();
+
+app.use(cors());
+app.use(express.json());
+
+app.get("/", (req, res) => {
+  res.json({ status: "MIXCOFARM MCFT backend online" });
 });
 
-// Handle Pi SDK verification (POST)
+app.get("/api/auth/verify", (req, res) => {
+  res.json({
+    status: "Backend is online. POST a Pi access token to verify."
+  });
+});
+
 app.post("/api/auth/verify", async (req, res) => {
   try {
-    const authHeader = req.headers.authorization;
-    const accessToken = authHeader && authHeader.split(" ")[1];
+    const { accessToken } = req.body || {};
+
     if (!accessToken) {
-      return res.status(401).json({ error: "No token provided" });
+      return res.status(401).json({
+        verified: false,
+        error: "No Pi access token provided"
+      });
     }
-    const response = await fetch("https://api.minepi.com/v2/me", {
-      headers: { "Authorization": "Bearer " + accessToken }
-    });
+
+    const response = await fetch(
+      "https://api.minepi.com/v2/me",
+      {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${accessToken}`
+        }
+      }
+    );
+
     if (!response.ok) {
-      return res.status(401).json({ error: "Pi token verification failed" });
+      return res.status(401).json({
+        verified: false,
+        error: "Pi token verification failed"
+      });
     }
-    const piUser = await response.json();
-    res.json({ success: true, user: piUser });
-  } catch (err) {
-    res.status(500).json({ error: err.message });
+
+    const user = await response.json();
+
+    return res.json({
+      verified: true,
+      user: {
+        uid: user.uid,
+        username: user.username
+      }
+    });
+
+  } catch (error) {
+    console.error("Authentication error:", error.message);
+
+    return res.status(500).json({
+      verified: false,
+      error: "Authentication service error"
+    });
   }
 });
 
-app.listen(3000, () => console.log("Server running on port 3000"));
+const PORT = process.env.PORT || 3000;
+
+app.listen(PORT, () => {
+  console.log(`MIXCOFARM backend running on port ${PORT}`);
+});
