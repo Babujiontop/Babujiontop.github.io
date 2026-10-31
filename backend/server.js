@@ -150,7 +150,10 @@ const server = http.createServer(async (req, res) => {
       "Access-Control-Allow-Methods",
       "GET, POST, OPTIONS"
     );
-    res.setHeader("Access-Control-Allow-Headers", "Content-Type");
+    res.setHeader(
+  "Access-Control-Allow-Headers",
+  "Content-Type, X-Admin-Setup-Secret"
+);
     res.writeHead(204);
     return res.end();
   }
@@ -168,7 +171,130 @@ const server = http.createServer(async (req, res) => {
       error: "Origin not allowed"
     });
   }
+  if (
+    req.method === "POST" &&
+    pathname === "/api/admin/setup"
+  ) {
+    if (!pool) {
+      return sendJson(res, 503, {
+        error: "Database is not configured"
+      });
+    }
 
+    if (!dbReady && !(await initDatabase())) {
+      return sendJson(res, 503, {
+        error: "Database is temporarily unavailable"
+      });
+    }
+
+    const setupSecret = process.env.ADMIN_SETUP_SECRET;
+    const suppliedSecret = req.headers["x-admin-setup-secret"];
+
+    if (
+      typeof setupSecret !== "string" ||
+      setupSecret.length < 32 ||
+      !adminSecurity.safeEqual(
+        setupSecret,
+        typeof suppliedSecret === "string" ? suppliedSecret : ""
+      )
+    ) {
+      return sendJson(res, 403, {
+        error: "Setup authorization failed"
+      });
+    }
+
+    const input = await readJson(req, res, 4096);
+    if (input === null) return;
+
+    const username = cleanText(input.username, 80);
+    const password = input.password;
+
+    if (!/^[a-zA-Z0-9_.-]{3,80}$/.test(username)) {
+      return sendJson(res, 400, {
+        error: "Username must be 3–80 characters using letters, numbers, dots, underscores or hyphens"
+      });
+    }
+
+    if (
+      typeof password !== "string" ||
+      password.length < 12 ||
+      password.length > 1024
+    ) {
+      return sendJson(res, 400, {
+        error: "Password must be 12–1024 characters"
+      });
+    }
+
+    let client;
+
+    try {
+      const passwordHash =
+        await adminSecurity.hashPassword(password);
+
+      const mfaSecret =
+        adminSecurity.createMfaSecret();
+
+      client = await pool.connect();
+      await client.query("BEGIN");
+
+      await client.query(
+        "SELECT pg_advisory_xact_lock(48192026)"
+      );
+
+      const existing = await client.query(
+        "SELECT id FROM admin_accounts LIMIT 1"
+      );
+
+      if (existing.rowCount > 0) {
+        await client.query("ROLLBACK");
+        return sendJson(res, 409, {
+          error: "An administrator account already exists"
+        });
+      }
+
+      const result = await client.query(
+        `INSERT INTO admin_accounts
+          (username, password_hash, mfa_secret)
+         VALUES ($1, $2, $3)
+         RETURNING id, username`,
+        [username, passwordHash, mfaSecret]
+      );
+
+      await client.query("COMMIT");
+
+      const issuer = "MIXCOFARM MCFT";
+      const otpauthUrl =
+        "otpauth://totp/" +
+        encodeURIComponent(issuer + ":" + username) +
+        "?secret=" + mfaSecret +
+        "&issuer=" + encodeURIComponent(issuer) +
+        "&algorithm=SHA1&digits=6&period=30";
+
+      console.log("Initial administrator account created");
+
+      return sendJson(res, 201, {
+        created: true,
+        administrator: result.rows[0],
+        mfaSecret,
+        otpauthUrl,
+        message: "Save the MFA secret securely. It will not be shown again."
+      });
+    } catch (error) {
+      if (client) {
+        try {
+          await client.query("ROLLBACK");
+        } catch {}
+      }
+
+      console.error("Admin setup failed:", error.message);
+
+      return sendJson(res, 500, {
+        error: "Administrator setup failed"
+      });
+    } finally {
+      if (client) client.release();
+    }
+  }
 
   if (
     req.method === "POST" &&
