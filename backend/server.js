@@ -122,36 +122,7 @@ async function initDatabase() {
     } finally {
       migrationClient.release();
     }
-  const parts = typeof value === "string" ? value.split(":") : [];
-
-  if (
-    parts.length !== 5 ||
-    parts[0] !== "enc" ||
-    parts[1] !== "v1"
-  ) {
-    throw new Error("Invalid encrypted MFA secret");
-  }
-
-  const iv = Buffer.from(parts[2], "base64url");
-  const tag = Buffer.from(parts[3], "base64url");
-  const encrypted = Buffer.from(parts[4], "base64url");
-
-  if (iv.length !== 12 || tag.length !== 16 || !encrypted.length) {
-    throw new Error("Invalid encrypted MFA data");
-  }
-
-  const decipher = crypto.createDecipheriv(
-    "aes-256-gcm",
-    getMfaEncryptionKey(),
-    iv
-  );
-
-  decipher.setAuthTag(tag);
-
-  return Buffer.concat([
-    decipher.update(encrypted),
-    decipher.final()
-  ]).toString("utf8");
+  
 }
     dbReady = true;
     console.log("Merchant registration database is ready");
