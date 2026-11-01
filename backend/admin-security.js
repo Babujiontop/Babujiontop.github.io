@@ -246,6 +246,8 @@ module.exports = {
   verifyPassword,
   createMfaSecret,
   verifyTotp,
+  encryptMfaSecret,
+  decryptMfaSecret,
   createRecoveryCodes,
   createSessionToken,
   sessionTokenHash,
