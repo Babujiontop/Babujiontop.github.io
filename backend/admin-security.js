@@ -149,7 +149,76 @@ function verifyTotp(secret, code, now = Date.now()) {
 
   return false;
 }
+function getMfaEncryptionKey() {
+  const value = process.env.ADMIN_MFA_ENCRYPTION_KEY;
 
+  if (typeof value !== "string" || !/^[a-f0-9]{64}$/i.test(value)) {
+    throw new Error("Invalid MFA encryption key configuration");
+  }
+
+  return Buffer.from(value, "hex");
+}
+
+function encryptMfaSecret(secret) {
+  if (typeof secret !== "string" || !secret) {
+    throw new Error("MFA secret is required");
+  }
+
+  if (secret.startsWith("enc:v1:")) return secret;
+
+  const iv = crypto.randomBytes(12);
+  const cipher = crypto.createCipheriv(
+    "aes-256-gcm",
+    getMfaEncryptionKey(),
+    iv
+  );
+
+  const encrypted = Buffer.concat([
+    cipher.update(secret, "utf8"),
+    cipher.final()
+  ]);
+
+  return [
+    "enc",
+    "v1",
+    iv.toString("base64url"),
+    cipher.getAuthTag().toString("base64url"),
+    encrypted.toString("base64url")
+  ].join(":");
+}
+
+function decryptMfaSecret(value) {
+  const parts = typeof value === "string" ? value.split(":") : [];
+
+  if (
+    parts.length !== 5 ||
+    parts[0] !== "enc" ||
+    parts[1] !== "v1"
+  ) {
+    throw new Error("Invalid encrypted MFA secret");
+  }
+
+  const iv = Buffer.from(parts[2], "base64url");
+  const tag = Buffer.from(parts[3], "base64url");
+  const encrypted = Buffer.from(parts[4], "base64url");
+
+  if (iv.length !== 12 || tag.length !== 16 || !encrypted.length) {
+    throw new Error("Invalid encrypted MFA data");
+  }
+
+  const decipher = crypto.createDecipheriv(
+    "aes-256-gcm",
+    getMfaEncryptionKey(),
+    iv
+  );
+
+  decipher.setAuthTag(tag);
+
+  return Buffer.concat([
+    decipher.update(encrypted),
+    decipher.final()
+  ]).toString("utf8");
+}
 function createRecoveryCodes(count = 10) {
   if (!Number.isInteger(count) || count < 1 || count > 20) {
     throw new Error("Invalid recovery-code count");
