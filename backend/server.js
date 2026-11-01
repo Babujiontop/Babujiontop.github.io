@@ -82,45 +82,46 @@ async function initDatabase() {
         created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
       );
     `);
-function getMfaEncryptionKey() {
-  const value = process.env.ADMIN_MFA_ENCRYPTION_KEY;
+    const encryptionKey = process.env.ADMIN_MFA_ENCRYPTION_KEY;
 
-  if (typeof value !== "string" || !/^[a-f0-9]{64}$/i.test(value)) {
-    throw new Error("Invalid MFA encryption key configuration");
-  }
+    if (
+      typeof encryptionKey !== "string" ||
+      !/^[a-f0-9]{64}$/i.test(encryptionKey)
+    ) {
+      throw new Error("ADMIN_MFA_ENCRYPTION_KEY is not configured correctly");
+    }
 
-  return Buffer.from(value, "hex");
-}
+    const migrationClient = await pool.connect();
 
-function encryptMfaSecret(secret) {
-  if (typeof secret !== "string" || !secret) {
-    throw new Error("MFA secret is required");
-  }
+    try {
+      await migrationClient.query("BEGIN");
 
-  if (secret.startsWith("enc:v1:")) return secret;
+      const admins = await migrationClient.query(
+        "SELECT id, mfa_secret FROM admin_accounts FOR UPDATE"
+      );
 
-  const iv = crypto.randomBytes(12);
-  const cipher = crypto.createCipheriv(
-    "aes-256-gcm",
-    getMfaEncryptionKey(),
-    iv
-  );
+      for (const admin of admins.rows) {
+        if (!admin.mfa_secret.startsWith("enc:v1:")) {
+          const encryptedSecret =
+            adminSecurity.encryptMfaSecret(admin.mfa_secret);
 
-  const encrypted = Buffer.concat([
-    cipher.update(secret, "utf8"),
-    cipher.final()
-  ]);
+          await migrationClient.query(
+            `UPDATE admin_accounts
+             SET mfa_secret = $1, updated_at = NOW()
+             WHERE id = $2`,
+            [encryptedSecret, admin.id]
+          );
+        }
+      }
 
-  return [
-    "enc",
-    "v1",
-    iv.toString("base64url"),
-    cipher.getAuthTag().toString("base64url"),
-    encrypted.toString("base64url")
-  ].join(":");
-}
-
-function decryptMfaSecret(value) {
+      await migrationClient.query("COMMIT");
+      console.log("Administrator MFA encryption migration completed");
+    } catch (error) {
+      await migrationClient.query("ROLLBACK");
+      throw error;
+    } finally {
+      migrationClient.release();
+    }
   const parts = typeof value === "string" ? value.split(":") : [];
 
   if (
