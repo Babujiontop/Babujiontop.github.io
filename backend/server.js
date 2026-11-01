@@ -123,7 +123,7 @@ async function initDatabase() {
       migrationClient.release();
     }
   
-}
+
     dbReady = true;
     console.log("Merchant registration database is ready");
     return true;
