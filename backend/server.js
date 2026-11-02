@@ -460,7 +460,7 @@ const encryptedMfaSecret =
       res.setHeader(
         "Set-Cookie",
         "mcft_admin_session=" + sessionToken +
-        "; HttpOnly; Secure; SameSite=Strict; Path=/api/admin; Max-Age=1800"
+        "; HttpOnly; Secure; SameSite=None; Path=/api/admin; Max-Age=1800"
       );
 
       return sendJson(res, 200, {
