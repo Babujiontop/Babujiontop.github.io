@@ -479,6 +479,85 @@ const encryptedMfaSecret =
       });
     }
   }
+   if (
+    req.method === "GET" &&
+    pathname === "/api/admin/me"
+  ) {
+    if (origin !== ALLOWED_ORIGIN) {
+      return sendJson(res, 403, {
+        error: "Origin not allowed"
+      });
+    }
+
+    const sessionToken =
+      getCookie(req, "mcft_admin_session");
+
+    const clearSessionCookie = () => {
+      res.setHeader(
+        "Set-Cookie",
+        "mcft_admin_session=; HttpOnly; Secure; SameSite=None; Path=/api/admin; Max-Age=0"
+      );
+    };
+
+    if (
+      !sessionToken ||
+      !/^[A-Za-z0-9_-]{40,64}$/.test(sessionToken)
+    ) {
+      clearSessionCookie();
+
+      return sendJson(res, 401, {
+        authenticated: false
+      });
+    }
+
+    if (!pool || (!dbReady && !(await initDatabase()))) {
+      return sendJson(res, 503, {
+        error: "Database is temporarily unavailable"
+      });
+    }
+
+    try {
+      const tokenHash =
+        adminSecurity.sessionTokenHash(sessionToken);
+
+      const result = await pool.query(
+        `SELECT a.username, s.expires_at
+         FROM admin_sessions s
+         JOIN admin_accounts a ON a.id = s.admin_id
+         WHERE s.token_hash = $1
+           AND s.expires_at > NOW()
+           AND a.is_active = TRUE
+         LIMIT 1`,
+        [tokenHash]
+      );
+
+      if (result.rowCount !== 1) {
+        clearSessionCookie();
+
+        return sendJson(res, 401, {
+          authenticated: false
+        });
+      }
+
+      return sendJson(res, 200, {
+        authenticated: true,
+        administrator: {
+          username: result.rows[0].username
+        },
+        expiresAt: result.rows[0].expires_at
+      });
+
+    } catch (error) {
+      console.error(
+        "Admin session validation failed:",
+        error.message
+      );
+
+      return sendJson(res, 500, {
+        error: "Session validation is temporarily unavailable"
+      });
+    }
+  }
   if (
     req.method === "POST" &&
     pathname === "/api/auth/verify"
