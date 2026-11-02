@@ -189,7 +189,41 @@ function getCookie(req, name) {
 
   return null;
 }
+async function recordFailedAdminLogin(username) {
+  const attemptKey =
+    username.trim().toLowerCase().slice(0, 80);
 
+  const result = await pool.query(
+    `INSERT INTO admin_login_attempts
+      (username, failed_attempts, updated_at)
+     VALUES ($1, 1, NOW())
+     ON CONFLICT (username)
+     DO UPDATE SET
+       failed_attempts = CASE
+         WHEN admin_login_attempts.locked_until IS NOT NULL
+          AND admin_login_attempts.locked_until <= NOW()
+         THEN 1
+         ELSE admin_login_attempts.failed_attempts + 1
+       END,
+       locked_until = CASE
+         WHEN (
+           CASE
+             WHEN admin_login_attempts.locked_until IS NOT NULL
+              AND admin_login_attempts.locked_until <= NOW()
+             THEN 1
+             ELSE admin_login_attempts.failed_attempts + 1
+           END
+         ) >= 5
+         THEN NOW() + INTERVAL '15 minutes'
+         ELSE NULL
+       END,
+       updated_at = NOW()
+     RETURNING failed_attempts, locked_until`,
+    [attemptKey]
+  );
+
+  return result.rows[0];
+}
 const server = http.createServer(async (req, res) => {
   console.log("REQUEST:", req.method, req.url);
   const pathname = new URL(req.url, "http://localhost").pathname.replace(/\/+$/, "") || "/";
