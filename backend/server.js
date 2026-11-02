@@ -560,6 +560,78 @@ const encryptedMfaSecret =
   }
   if (
     req.method === "POST" &&
+    pathname === "/api/admin/logout"
+  ) {
+    if (origin !== ALLOWED_ORIGIN) {
+      return sendJson(res, 403, {
+        error: "Origin not allowed"
+      });
+    }
+
+    const sessionToken =
+      getCookie(req, "mcft_admin_session");
+
+    res.setHeader(
+      "Set-Cookie",
+      "mcft_admin_session=; HttpOnly; Secure; SameSite=None; Path=/api/admin; Max-Age=0"
+    );
+
+    if (
+      !sessionToken ||
+      !/^[A-Za-z0-9_-]{40,64}$/.test(sessionToken)
+    ) {
+      return sendJson(res, 200, {
+        loggedOut: true
+      });
+    }
+
+    if (!pool || (!dbReady && !(await initDatabase()))) {
+      return sendJson(res, 503, {
+        error: "Database is temporarily unavailable"
+      });
+    }
+
+    try {
+      const tokenHash =
+        adminSecurity.sessionTokenHash(sessionToken);
+
+      const result = await pool.query(
+        `DELETE FROM admin_sessions
+         WHERE token_hash = $1
+         RETURNING admin_id`,
+        [tokenHash]
+      );
+
+      if (result.rowCount === 1) {
+        await pool.query(
+          `INSERT INTO admin_audit_log
+           (admin_id, event_type, details)
+           VALUES ($1, $2, $3)`,
+          [
+            result.rows[0].admin_id,
+            "admin_logout",
+            JSON.stringify({})
+          ]
+        );
+      }
+
+      return sendJson(res, 200, {
+        loggedOut: true
+      });
+
+    } catch (error) {
+      console.error(
+        "Admin logout failed:",
+        error.message
+      );
+
+      return sendJson(res, 500, {
+        error: "Administrator logout is temporarily unavailable"
+      });
+    }
+  }
+  if (
+    req.method === "POST" &&
     pathname === "/api/auth/verify"
   ) {
     const input = await readJson(req, res, 8192);
