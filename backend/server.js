@@ -241,7 +241,7 @@ const server = http.createServer(async (req, res) => {
   }
 
   if (req.method === "OPTIONS") {
-    if (origin !== ALLOWED_ORIGIN) {
+    if (origin && origin !== ALLOWED_ORIGIN) {
       return sendJson(res, 403, { error: "Origin not allowed" });
     }
 
