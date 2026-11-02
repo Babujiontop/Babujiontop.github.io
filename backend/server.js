@@ -430,7 +430,26 @@ const encryptedMfaSecret =
       });
     }
 
-    try {
+    try {      const lockResult = await pool.query(
+        `SELECT
+           locked_until,
+           EXTRACT(
+             EPOCH FROM (locked_until - NOW())
+           )::INTEGER AS retry_after_seconds
+         FROM admin_login_attempts
+         WHERE username = $1
+           AND locked_until > NOW()
+         LIMIT 1`,
+        [username.trim().toLowerCase().slice(0, 80)]
+      );
+
+      if (lockResult.rowCount === 1) {
+        return sendJson(res, 429, {
+          error: "Too many failed attempts. Try again later.",
+          retryAfterSeconds:
+            lockResult.rows[0].retry_after_seconds
+        });
+      }
       const result = await pool.query(
         `SELECT id, username, password_hash, mfa_secret, is_active
          FROM admin_accounts
@@ -440,6 +459,7 @@ const encryptedMfaSecret =
       );
 
       if (result.rowCount !== 1 || !result.rows[0].is_active) {
+        await recordFailedAdminLogin(username);
         return sendJson(res, 401, {
           error: "Invalid login credentials"
         });
@@ -454,6 +474,7 @@ const encryptedMfaSecret =
         );
 
       if (!passwordValid) {
+        await recordFailedAdminLogin(username);
         return sendJson(res, 401, {
           error: "Invalid login credentials"
         });
