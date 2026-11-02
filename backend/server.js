@@ -355,7 +355,130 @@ const encryptedMfaSecret =
       if (client) client.release();
     }
   }
+  if (
+    req.method === "POST" &&
+    pathname === "/api/admin/login"
+  ) {
+    if (origin !== ALLOWED_ORIGIN) {
+      return sendJson(res, 403, {
+        error: "Origin not allowed"
+      });
+    }
 
+    if (!pool || (!dbReady && !(await initDatabase()))) {
+      return sendJson(res, 503, {
+        error: "Database is temporarily unavailable"
+      });
+    }
+
+    const input = await readJson(req, res, 4096);
+    if (input === null) return;
+
+    const username = cleanText(input.username, 80);
+    const password = input.password;
+    const totpCode = input.totpCode;
+
+    if (
+      !username ||
+      typeof password !== "string" ||
+      password.length > 1024 ||
+      typeof totpCode !== "string" ||
+      !/^\d{6}$/.test(totpCode)
+    ) {
+      return sendJson(res, 400, {
+        error: "Valid login details are required"
+      });
+    }
+
+    try {
+      const result = await pool.query(
+        `SELECT id, username, password_hash, mfa_secret, is_active
+         FROM admin_accounts
+         WHERE username = $1
+         LIMIT 1`,
+        [username]
+      );
+
+      if (result.rowCount !== 1 || !result.rows[0].is_active) {
+        return sendJson(res, 401, {
+          error: "Invalid login credentials"
+        });
+      }
+
+      const admin = result.rows[0];
+
+      const passwordValid =
+        await adminSecurity.verifyPassword(
+          password,
+          admin.password_hash
+        );
+
+      if (!passwordValid) {
+        return sendJson(res, 401, {
+          error: "Invalid login credentials"
+        });
+      }
+
+      const mfaSecret =
+        adminSecurity.decryptMfaSecret(admin.mfa_secret);
+
+      if (!adminSecurity.verifyTotp(mfaSecret, totpCode)) {
+        return sendJson(res, 401, {
+          error: "Invalid login credentials"
+        });
+      }
+
+      const sessionToken =
+        adminSecurity.createSessionToken();
+
+      const tokenHash =
+        adminSecurity.sessionTokenHash(sessionToken);
+
+      const expiresAt =
+        adminSecurity.sessionExpiry();
+
+      await pool.query(
+        `DELETE FROM admin_sessions
+         WHERE admin_id = $1 AND expires_at <= NOW()`,
+        [admin.id]
+      );
+
+      await pool.query(
+        `INSERT INTO admin_sessions
+          (token_hash, admin_id, expires_at)
+         VALUES ($1, $2, $3)`,
+        [tokenHash, admin.id, expiresAt]
+      );
+
+      await pool.query(
+        `INSERT INTO admin_audit_log
+          (admin_id, event_type, details)
+         VALUES ($1, $2, $3)`,
+        [admin.id, "admin_login_success", JSON.stringify({})]
+      );
+
+      res.setHeader(
+        "Set-Cookie",
+        "mcft_admin_session=" + sessionToken +
+        "; HttpOnly; Secure; SameSite=Strict; Path=/api/admin; Max-Age=1800"
+      );
+
+      return sendJson(res, 200, {
+        authenticated: true,
+        administrator: {
+          username: admin.username
+        },
+        expiresAt
+      });
+
+    } catch (error) {
+      console.error("Admin login failed:", error.message);
+
+      return sendJson(res, 500, {
+        error: "Administrator login is temporarily unavailable"
+      });
+    }
+  }
   if (
     req.method === "POST" &&
     pathname === "/api/auth/verify"
