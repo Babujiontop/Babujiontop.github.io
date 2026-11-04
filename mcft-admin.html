@@ -1,474 +1,664 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="theme-color" content="#07111f">
-<title>MIXCOFARM MCFT Admin Console</title>
-
+<title>MIXCOFARM DIGITAL FINANCE | Admin Dashboard</title>
 <style>
-:root {
-  --bg:#07111f;
-  --panel:#0d1b2d;
-  --panel2:#10243a;
-  --line:#1e3852;
-  --text:#f4f8fc;
-  --muted:#9bb0c5;
-  --green:#34d399;
-  --blue:#60a5fa;
-  --yellow:#fbbf24;
+:root{
+  --bg:#07111f;--panel:#0d1b2d;--panel2:#10243a;
+  --line:#1e3852;--text:#f4f8fc;--muted:#9bb0c5;
+  --green:#34d399;--blue:#60a5fa;--yellow:#fbbf24;
   --red:#f87171;
 }
-* {box-sizing:border-box}
-body {
-  margin:0;
-  background:radial-gradient(circle at top right,#12304a 0,#07111f 45%);
-  color:var(--text);
-  font-family:Arial,sans-serif;
-  min-height:100vh;
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);
+font-family:Arial,Helvetica,sans-serif}
+header{padding:20px 24px;background:#091728;border-bottom:1px solid var(--line)}
+header h1{margin:0;font-size:21px;color:var(--green)}
+header p{margin:7px 0 0;color:var(--muted);font-size:13px}
+.layout{display:grid;grid-template-columns:235px 1fr;min-height:calc(100vh - 75px)}
+aside{background:#091728;border-right:1px solid var(--line);padding:16px}
+nav{display:flex;flex-direction:column;gap:6px}
+nav button{background:transparent;border:1px solid transparent;color:var(--muted);
+text-align:left;padding:11px;border-radius:8px;cursor:pointer;font-size:14px}
+nav button:hover,nav button.active{background:var(--panel2);color:var(--green);border-color:var(--line)}
+main{padding:22px;min-width:0}
+.warning{background:#332713;border:1px solid #73531c;color:#ffe2a3;
+padding:13px;border-radius:9px;margin-bottom:20px;font-size:13px;line-height:1.5}
+.panel{display:none}.panel.active{display:block}
+h2{font-size:22px;margin:0 0 8px}
+h3{font-size:16px;margin:0 0 14px}
+.sub{color:var(--muted);font-size:13px;margin:0 0 20px}
+.grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px;margin:18px 0}
+.card,.box{background:var(--panel);border:1px solid var(--line);border-radius:11px;padding:17px}
+.card small{color:var(--muted);font-size:12px}
+.metric{font-size:25px;font-weight:bold;margin-top:10px}
+.green{color:var(--green)}.blue{color:var(--blue)}
+.yellow{color:var(--yellow)}.red{color:var(--red)}
+.box{margin:15px 0}
+.box p,.box li{color:var(--muted);font-size:13px;line-height:1.6}
+.box ul{padding-left:20px}
+.table-wrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse;min-width:620px;font-size:13px}
+th,td{padding:12px;text-align:left;border-bottom:1px solid var(--line)}
+th{color:var(--muted);font-weight:600}
+td{color:var(--text)}
+.status{display:inline-block;padding:4px 8px;border-radius:20px;
+background:#183b32;color:var(--green);font-size:11px}
+.status.pending{background:#453719;color:#ffdc87}
+.status.alert{background:#482424;color:#ffaaaa}
+.tag{font-size:11px;color:var(--blue);border:1px solid #294a6a;
+padding:4px 7px;border-radius:20px}
+.columns{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+label{display:block;color:var(--muted);font-size:12px;margin:12px 0 6px}
+input,select,textarea{width:100%;padding:11px;border-radius:7px;
+border:1px solid var(--line);background:#081524;color:var(--text)}
+textarea{min-height:80px;resize:vertical}
+button.action{padding:10px 13px;background:#183b32;color:var(--green);
+border:1px solid #28614d;border-radius:7px;margin-top:12px;cursor:pointer}
+button.action:disabled{opacity:.55;cursor:not-allowed}
+.notice{color:var(--yellow);font-size:12px;line-height:1.5}
+footer{padding:18px;color:var(--muted);font-size:11px;border-top:1px solid var(--line)}
+@media(max-width:950px){
+ .grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+ .layout{grid-template-columns:1fr}
+ aside{border-right:0;border-bottom:1px solid var(--line)}
+ nav{display:flex;flex-direction:row;overflow-x:auto;padding-bottom:5px}
+ nav button{white-space:nowrap}
+ main{padding:15px}
 }
-button {font:inherit;cursor:pointer}
-.layout {
-  display:grid;
-  grid-template-columns:245px minmax(0,1fr);
-  min-height:100vh;
-}
-.sidebar {
-  background:#091625;
-  border-right:1px solid var(--line);
-  padding:22px 15px;
-}
-.brand {
-  display:flex;
-  align-items:center;
-  gap:11px;
-  font-weight:800;
-  margin-bottom:30px;
-}
-.logo {
-  width:42px;height:42px;border-radius:13px;
-  display:grid;place-items:center;
-  background:linear-gradient(135deg,var(--green),var(--blue));
-  color:#061421;font-size:20px;font-weight:900;
-}
-.brand small {display:block;color:var(--muted);font-size:11px;margin-top:4px}
-.demo {
-  padding:10px;
-  border:1px solid #6b5522;
-  border-radius:10px;
-  color:var(--yellow);
-  background:#2a2412;
-  font-size:11px;
-  text-align:center;
-  margin-bottom:20px;
-}
-.nav-label {
-  color:var(--muted);
-  font-size:10px;
-  letter-spacing:1.5px;
-  margin:20px 8px 9px;
-}
-.nav button {
-  display:block;width:100%;text-align:left;
-  padding:12px;
-  color:var(--muted);
-  background:transparent;
-  border:0;border-radius:9px;
-  margin:3px 0;
-}
-.nav button:hover,.nav button.active {
-  background:#17304a;color:var(--green);
-}
-.main {padding:25px;min-width:0}
-.topbar {
-  display:flex;justify-content:space-between;
-  align-items:center;gap:12px;margin-bottom:25px;
-}
-.topbar h1 {font-size:24px;margin:5px 0}
-.eyebrow {
-  color:var(--green);font-size:11px;
-  font-weight:bold;letter-spacing:1.5px;
-}
-.muted {color:var(--muted)}
-.small {font-size:12px}
-.pill {
-  padding:7px 10px;border-radius:30px;
-  background:#17304a;color:var(--green);
-  font-size:11px;white-space:nowrap;
-}
-.grid {
-  display:grid;
-  grid-template-columns:repeat(12,minmax(0,1fr));
-  gap:15px;
-}
-.card {
-  background:linear-gradient(145deg,#10243a,#0a192a);
-  border:1px solid var(--line);
-  border-radius:16px;
-  padding:19px;
-  min-width:0;
-}
-.span-3 {grid-column:span 3}
-.span-4 {grid-column:span 4}
-.span-6 {grid-column:span 6}
-.span-8 {grid-column:span 8}
-.span-12 {grid-column:span 12}
-.metric {
-  font-size:28px;font-weight:800;margin:12px 0 5px;
-}
-.green {color:var(--green)}
-.blue {color:var(--blue)}
-.yellow {color:var(--yellow)}
-h2 {font-size:18px;margin:0 0 14px}
-h3 {font-size:14px;margin:0 0 10px}
-.panel {display:none}
-.panel.active {display:block}
-.table-wrap {overflow-x:auto}
-table {width:100%;border-collapse:collapse;min-width:450px}
-th,td {
-  padding:13px 10px;text-align:left;
-  border-bottom:1px solid var(--line);
-  font-size:12px;
-}
-th {color:var(--muted);font-weight:600}
-.status {
-  display:inline-block;padding:5px 8px;
-  border-radius:20px;background:#17304a;
-  color:var(--green);font-size:10px;
-}
-.notice {
-  padding:13px;border-radius:10px;
-  background:#2a2412;border:1px solid #6b5522;
-  color:#f8d982;font-size:12px;line-height:1.6;
-  margin:15px 0;
-}
-.activity {
-  display:flex;justify-content:space-between;
-  gap:12px;padding:13px 0;
-  border-bottom:1px solid var(--line);
-  font-size:12px;
-}
-.activity:last-child {border:0}
-.action {
-  border:1px solid var(--line);
-  background:#17304a;color:var(--text);
-  border-radius:9px;padding:9px 12px;
-}
-.action:hover {border-color:var(--green)}
-.footer {
-  text-align:center;color:var(--muted);
-  font-size:11px;margin-top:25px;
-}
-@media(max-width:850px) {
-  .layout {grid-template-columns:1fr}
-  .sidebar {border-right:0;border-bottom:1px solid var(--line)}
-  .nav {display:flex;overflow-x:auto;gap:5px}
-  .nav-label {display:none}
-  .nav button {white-space:nowrap;width:auto}
-  .main {padding:17px 12px}
-  .span-3,.span-4,.span-6,.span-8 {grid-column:span 12}
+@media(max-width:550px){
+ .grid{grid-template-columns:1fr 1fr;gap:8px}
+ .card,.box{padding:12px}
+ .metric{font-size:20px}
+ .columns{grid-template-columns:1fr}
+ header{padding:16px}
 }
 </style>
 </head>
-
 <body>
-<div class="layout">
 
-<aside class="sidebar">
-  <div class="brand">
-    <div class="logo">M</div>
-    <div>
-      MIXCOFARM
-      <small>MCFT ADMIN CONSOLE</small>
-    </div>
-  </div>
-
-  <div class="demo">
-    DEMO MODE — NO LIVE ADMIN ACCESS
-  </div>
-
-  <div class="nav-label">MAIN MENU</div>
-  <nav class="nav">
-    <button class="active" data-panel="overview">▦ Overview</button>
-    <button data-panel="merchants">▣ Merchants</button>
-    <button data-panel="customers">♙ Customers</button>
-    <button data-panel="transactions">⇄ Transactions</button>
-    <button data-panel="token">◈ MCFT Token</button>
-
-    <div class="nav-label">MANAGEMENT</div>
-    <button data-panel="treasury">▤ Treasury</button>
-    <button data-panel="reports">▥ Reports</button>
-    <button data-panel="activity">◷ System Activity</button>
-    <button data-panel="settings">⚙ Settings</button>
-  </nav>
-</aside>
-
-<main class="main">
-
-<header class="topbar">
-  <div>
-    <div class="eyebrow">ADMINISTRATION</div>
-    <h1 id="pageTitle">Dashboard Overview</h1>
-    <div class="muted small">MIXCOFARM Token Testnet Management</div>
-  </div>
-  <span class="pill">TESTNET · DEMO</span>
+<header>
+  <h1>MIXCOFARM DIGITAL FINANCE</h1>
+  <p>Administrative Management Dashboard · MCFT Testnet Project</p>
 </header>
 
-<div class="notice">
-  This is a demonstration interface. All figures and records are
-  sample data. No real customers, merchants, funds, tokens or
-  administrative operations are connected.
+<div class="layout">
+<aside>
+<nav id="navigation">
+  <button class="active" data-panel="overview">Overview</button>
+  <button data-panel="merchants">Merchants</button>
+  <button data-panel="customers">Customers</button>
+  <button data-panel="transactions">Transactions</button>
+  <button data-panel="settlements">Settlement & Reconciliation</button>
+  <button data-panel="agents">Agent Network</button>
+  <button data-panel="community">Community Retail Network</button>
+  <button data-panel="inventory">Inventory & Warehouses</button>
+  <button data-panel="compliance">Compliance & KYC</button>
+  <button data-panel="risk">Risk & Fraud Monitoring</button>
+  <button data-panel="token">MCFT Token</button>
+  <button data-panel="treasury">Treasury</button>
+  <button data-panel="reports">Reports</button>
+  <button data-panel="activity">System Activity</button>
+  <button data-panel="settings">Settings</button>
+</nav>
+</aside>
+
+<main>
+<div class="warning">
+  <strong>DEMO MODE — NO LIVE ADMIN ACCESS</strong><br>
+  This dashboard is a development prototype. The figures and records are illustrative only.
+  It is not connected to live financial accounts, customer records, payment processing,
+  merchant payouts or the production database. Do not enter real personal information,
+  passwords, wallet keys or financial data.
 </div>
 
 <!-- OVERVIEW -->
-<section id="overview" class="panel active">
-  <div class="grid">
-
-    <article class="card span-3">
-      <div class="muted small">Demo merchants</div>
-      <div class="metric">125</div>
-      <span class="green small">Illustrative records</span>
-    </article>
-
-    <article class="card span-3">
-      <div class="muted small">Demo customers</div>
-      <div class="metric">1,250</div>
-      <span class="blue small">Illustrative records</span>
-    </article>
-
-    <article class="card span-3">
-      <div class="muted small">Demo transactions</div>
-      <div class="metric">348</div>
-      <span class="green small">Sample activity</span>
-    </article>
-
-    <article class="card span-3">
-      <div class="muted small">Proposed MCFT supply</div>
-      <div class="metric">1B</div>
-      <span class="yellow small">Not deployed</span>
-    </article>
-
-    <article class="card span-8">
-      <h2>Platform Overview</h2>
-      <div class="activity">
-        <span class="muted">Platform environment</span>
-        <strong class="green">Testnet prototype</strong>
-      </div>
-      <div class="activity">
-        <span class="muted">Database connection</span>
-        <strong class="yellow">Pending</strong>
-      </div>
-      <div class="activity">
-        <span class="muted">Pi payment integration</span>
-        <strong>Existing prototype</strong>
-      </div>
-      <div class="activity">
-        <span class="muted">Admin authentication</span>
-        <strong class="yellow">Not enabled</strong>
-      </div>
-    </article>
-
-    <article class="card span-4">
-      <h2>Quick Links</h2>
-      <p><button class="action" onclick="showPanel('merchants')">Merchant records</button></p>
-      <p><button class="action" onclick="showPanel('transactions')">Transaction history</button></p>
-      <p><button class="action" onclick="showPanel('token')">Token information</button></p>
-    </article>
-
-    <article class="card span-6">
-      <h2>Recent Sample Activity</h2>
-      <div class="activity">
-        <span>Demo merchant registration</span>
-        <span class="green">Sample</span>
-      </div>
-      <div class="activity">
-        <span>Demo customer account</span>
-        <span class="green">Sample</span>
-      </div>
-      <div class="activity">
-        <span>Demo payment record</span>
-        <span class="green">Sample</span>
-      </div>
-    </article>
-
-    <article class="card span-6">
-      <h2>Development Status</h2>
-      <div class="activity"><span>Customer interface</span><span class="green">Prototype</span></div>
-      <div class="activity"><span>Merchant interface</span><span class="green">Prototype</span></div>
-      <div class="activity"><span>Admin interface</span><span class="green">Prototype</span></div>
-      <div class="activity"><span>Database integration</span><span class="yellow">Pending</span></div>
-    </article>
-
+<section class="panel active" id="overview">
+<h2>Platform Overview</h2>
+<p class="sub">High-level view of the MIXCOFARM Digital Finance prototype.</p>
+<div class="grid">
+  <div class="card"><small>Demo Merchants</small><div class="metric green">125</div></div>
+  <div class="card"><small>Demo Customers</small><div class="metric blue">1,250</div></div>
+  <div class="card"><small>Demo Transactions</small><div class="metric">348</div></div>
+  <div class="card"><small>Proposed MCFT Supply</small><div class="metric yellow">1B</div></div>
+</div>
+<div class="columns">
+  <div class="box">
+    <h3>Platform Status</h3>
+    <p>Environment: <span class="status">Testnet prototype</span></p>
+    <p>Database integration: <span class="status pending">Pending</span></p>
+    <p>Payment integration: <span class="status pending">Not connected</span></p>
+    <p>Admin authentication: <span class="status pending">Separate staging work</span></p>
   </div>
+  <div class="box">
+    <h3>Management Priorities</h3>
+    <ul>
+      <li>Secure administrator access.</li>
+      <li>Merchant and customer verification.</li>
+      <li>Transaction monitoring and reconciliation.</li>
+      <li>Agent network management.</li>
+      <li>Community retail partnerships.</li>
+      <li>Financial reporting and audit controls.</li>
+    </ul>
+  </div>
+</div>
+<div class="box">
+  <h3>Platform Architecture</h3>
+  <p>Customer interface · Merchant interface · Agent interface · Admin dashboard ·
+  API services · Database · Payment integrations · Compliance and security services.</p>
+</div>
 </section>
 
 <!-- MERCHANTS -->
-<section id="merchants" class="panel">
-  <div class="card">
-    <h2>Merchant Management</h2>
-    <p class="muted small">Illustrative merchant records only.</p>
-    <div class="table-wrap">
-      <table>
-        <thead><tr><th>Reference</th><th>Business</th><th>Country</th><th>Status</th></tr></thead>
-        <tbody>
-          <tr><td>MCD-DEMO001</td><td>Sample Store One</td><td>Nigeria</td><td><span class="status">Demo</span></td></tr>
-          <tr><td>MCD-DEMO002</td><td>Sample Store Two</td><td>Saudi Arabia</td><td><span class="status">Demo</span></td></tr>
-          <tr><td>MCD-DEMO003</td><td>Sample Store Three</td><td>Ghana</td><td><span class="status">Demo</span></td></tr>
-        </tbody>
-      </table>
-    </div>
-  </div>
+<section class="panel" id="merchants">
+<h2>Merchant Management</h2>
+<p class="sub">Merchant onboarding, verification and account monitoring.</p>
+<div class="grid">
+  <div class="card"><small>Total demo merchants</small><div class="metric">125</div></div>
+  <div class="card"><small>Approved (sample)</small><div class="metric green">98</div></div>
+  <div class="card"><small>Pending review</small><div class="metric yellow">18</div></div>
+  <div class="card"><small>Restricted (sample)</small><div class="metric red">9</div></div>
+</div>
+<div class="box">
+<h3>Sample Merchant Records</h3>
+<div class="table-wrap"><table>
+<thead><tr><th>Merchant ID</th><th>Business</th><th>Location</th><th>Status</th></tr></thead>
+<tbody>
+<tr><td>MER-001</td><td>Demo General Store</td><td>Gombe</td><td><span class="status">Approved</span></td></tr>
+<tr><td>MER-002</td><td>Demo Food Market</td><td>Bauchi</td><td><span class="status pending">Pending</span></td></tr>
+<tr><td>MER-003</td><td>Demo Retail Shop</td><td>Maiduguri</td><td><span class="status">Approved</span></td></tr>
+</tbody></table></div>
+<p class="notice">Sample records only. Verification and account actions are not connected.</p>
+</div>
+<div class="box">
+<h3>Merchant Application Preview</h3>
+<label>Business name</label><input placeholder="Demo business name">
+<label>Business registration number</label><input placeholder="Demo registration number">
+<label>Business location</label><input placeholder="Town / State">
+<label>Application notes</label><textarea placeholder="Demo notes"></textarea>
+<button class="action" disabled>Submit application — not connected</button>
+</div>
 </section>
 
 <!-- CUSTOMERS -->
-<section id="customers" class="panel">
-  <div class="card">
-    <h2>Customer Management</h2>
-    <p class="muted small">No actual customer data is connected.</p>
-    <div class="table-wrap">
-      <table>
-        <thead><tr><th>Customer ID</th><th>Username</th><th>Environment</th><th>Status</th></tr></thead>
-        <tbody>
-          <tr><td>CUS-DEMO001</td><td>SampleUser01</td><td>Testnet</td><td><span class="status">Demo</span></td></tr>
-          <tr><td>CUS-DEMO002</td><td>SampleUser02</td><td>Testnet</td><td><span class="status">Demo</span></td></tr>
-          <tr><td>CUS-DEMO003</td><td>SampleUser03</td><td>Testnet</td><td><span class="status">Demo</span></td></tr>
-        </tbody>
-      </table>
-    </div>
-  </div>
+<section class="panel" id="customers">
+<h2>Customer Management</h2>
+<p class="sub">Customer account overview and verification workflow.</p>
+<div class="grid">
+  <div class="card"><small>Demo customers</small><div class="metric">1,250</div></div>
+  <div class="card"><small>Verified sample</small><div class="metric green">970</div></div>
+  <div class="card"><small>Pending sample</small><div class="metric yellow">210</div></div>
+  <div class="card"><small>Review sample</small><div class="metric red">70</div></div>
+</div>
+<div class="box">
+<h3>Customer Account Table</h3>
+<div class="table-wrap"><table>
+<thead><tr><th>Customer ID</th><th>Account Type</th><th>Registration</th><th>Status</th></tr></thead>
+<tbody>
+<tr><td>CUS-001</td><td>Individual</td><td>Demo</td><td><span class="status">Verified</span></td></tr>
+<tr><td>CUS-002</td><td>Individual</td><td>Demo</td><td><span class="status pending">Pending</span></td></tr>
+<tr><td>CUS-003</td><td>Business</td><td>Demo</td><td><span class="status">Verified</span></td></tr>
+</tbody></table></div>
+</div>
+<div class="box">
+<h3>Customer Service Controls — Planned</h3>
+<ul>
+<li>Account status and profile review.</li>
+<li>Customer support case management.</li>
+<li>Monthly downloadable account statements.</li>
+<li>Transaction history and dispute tracking.</li>
+</ul>
+<p class="notice">Printed receipts are intended for the merchant dashboard only. Customers may download monthly statements when available.</p>
+</div>
 </section>
 
 <!-- TRANSACTIONS -->
-<section id="transactions" class="panel">
-  <div class="card">
-    <h2>Pi Payment Transactions</h2>
-    <p class="muted small">Sample entries only. No real payment activity.</p>
-    <div class="table-wrap">
-      <table>
-        <thead><tr><th>Reference</th><th>Type</th><th>Amount</th><th>Status</th></tr></thead>
-        <tbody>
-          <tr><td>TX-DEMO001</td><td>Demo incoming</td><td class="green">π 100.00</td><td>Sample</td></tr>
-          <tr><td>TX-DEMO002</td><td>Demo merchant payment</td><td>π 25.00</td><td>Sample</td></tr>
-          <tr><td>TX-DEMO003</td><td>Demo reward</td><td class="green">π 50.00</td><td>Sample</td></tr>
-        </tbody>
-      </table>
-    </div>
-  </div>
+<section class="panel" id="transactions">
+<h2>Transaction Monitoring</h2>
+<p class="sub">Illustrative transaction records; no live payments are processed here.</p>
+<div class="grid">
+  <div class="card"><small>Demo transaction count</small><div class="metric">348</div></div>
+  <div class="card"><small>Successful sample</small><div class="metric green">319</div></div>
+  <div class="card"><small>Pending sample</small><div class="metric yellow">17</div></div>
+  <div class="card"><small>Failed sample</small><div class="metric red">12</div></div>
+</div>
+<div class="box">
+<h3>Transaction Records</h3>
+<div class="table-wrap"><table>
+<thead><tr><th>Reference</th><th>Type</th><th>Amount</th><th>Channel</th><th>Status</th></tr></thead>
+<tbody>
+<tr><td>TXN-1001</td><td>Merchant payment</td><td>₦5,000</td><td>Demo</td><td><span class="status">Success</span></td></tr>
+<tr><td>TXN-1002</td><td>Customer payment</td><td>₦2,500</td><td>Demo</td><td><span class="status pending">Pending</span></td></tr>
+<tr><td>TXN-1003</td><td>Merchant payment</td><td>₦8,000</td><td>Demo</td><td><span class="status alert">Failed</span></td></tr>
+</tbody></table></div>
+</div>
+<div class="box">
+<h3>Transaction Controls — Planned</h3>
+<ul>
+<li>Search by transaction reference.</li>
+<li>Filter by date, merchant, customer and status.</li>
+<li>Dispute and reversal review.</li>
+<li>Immutable transaction audit trail.</li>
+</ul>
+</div>
+</section>
+
+<!-- SETTLEMENTS -->
+<section class="panel" id="settlements">
+<h2>Settlement & Reconciliation</h2>
+<p class="sub">Planned controls for matching platform transactions with merchant settlement records.</p>
+<div class="grid">
+  <div class="card"><small>Demo settlement batches</small><div class="metric">12</div></div>
+  <div class="card"><small>Awaiting reconciliation</small><div class="metric yellow">3</div></div>
+  <div class="card"><small>Matched sample</small><div class="metric green">9</div></div>
+  <div class="card"><small>Exceptions sample</small><div class="metric red">2</div></div>
+</div>
+<div class="box">
+<h3>Settlement Workflow</h3>
+<ol>
+<li>Collect completed transaction records.</li>
+<li>Calculate merchant settlement obligations.</li>
+<li>Compare internal ledger with payment provider records.</li>
+<li>Investigate mismatches and duplicate references.</li>
+<li>Require authorized review before any payout.</li>
+<li>Record final settlement and audit evidence.</li>
+</ol>
+</div>
+<div class="box">
+<h3>Settlement Batch Preview</h3>
+<div class="table-wrap"><table>
+<thead><tr><th>Batch</th><th>Period</th><th>Transactions</th><th>Status</th></tr></thead>
+<tbody>
+<tr><td>SET-001</td><td>Demo Day 1</td><td>48</td><td><span class="status">Matched</span></td></tr>
+<tr><td>SET-002</td><td>Demo Day 2</td><td>35</td><td><span class="status pending">Review</span></td></tr>
+<tr><td>SET-003</td><td>Demo Day 3</td><td>62</td><td><span class="status">Matched</span></td></tr>
+</tbody></table></div>
+<button class="action" disabled>Approve merchant payout — not connected</button>
+<p class="notice">No payout, transfer or settlement can be executed from this prototype.</p>
+</div>
+</section>
+
+<!-- AGENTS -->
+<section class="panel" id="agents">
+<h2>Agent Network Management</h2>
+<p class="sub">Planned registration and supervision of authorized community agents.</p>
+<div class="grid">
+  <div class="card"><small>Demo agents</small><div class="metric">45</div></div>
+  <div class="card"><small>Active sample</small><div class="metric green">37</div></div>
+  <div class="card"><small>Pending verification</small><div class="metric yellow">6</div></div>
+  <div class="card"><small>Under review</small><div class="metric red">2</div></div>
+</div>
+<div class="box">
+<h3>Agent Responsibilities</h3>
+<ul>
+<li>Customer and merchant registration assistance.</li>
+<li>Approved payment and service support.</li>
+<li>Community outreach and education.</li>
+<li>Phone-charging and phone-accessory retailer registration points, where suitable.</li>
+<li>Compliance with agent operating limits and security policies.</li>
+</ul>
+</div>
+<div class="box">
+<h3>Agent Register Preview</h3>
+<div class="table-wrap"><table>
+<thead><tr><th>Agent ID</th><th>Assigned Area</th><th>Role</th><th>Status</th></tr></thead>
+<tbody>
+<tr><td>AGT-001</td><td>Demo Ward A</td><td>Community agent</td><td><span class="status">Active</span></td></tr>
+<tr><td>AGT-002</td><td>Demo Ward B</td><td>Merchant support</td><td><span class="status pending">Pending</span></td></tr>
+</tbody></table></div>
+</div>
+<div class="box">
+<h3>Agent Onboarding Preview</h3>
+<label>Agent name</label><input placeholder="Demo agent">
+<label>Assigned ward or location</label><input placeholder="Ward / town">
+<label>Agent category</label>
+<select><option>Community agent</option><option>Merchant support</option><option>Registration point</option></select>
+<button class="action" disabled>Register agent — not connected</button>
+</div>
+</section>
+
+<!-- COMMUNITY RETAIL -->
+<section class="panel" id="community">
+<h2>Community Retail Consolidation Network</h2>
+<p class="sub">A partnership model that strengthens existing independent retailers instead of unnecessarily competing against them.</p>
+<div class="grid">
+  <div class="card"><small>Proposed market locations</small><div class="metric">10</div></div>
+  <div class="card"><small>Retailer applications</small><div class="metric">35</div></div>
+  <div class="card"><small>Partnerships (sample)</small><div class="metric green">12</div></div>
+  <div class="card"><small>Assessments pending</small><div class="metric yellow">8</div></div>
+</div>
+<div class="box">
+<h3>Participation Options</h3>
+<ul>
+<li><strong>Voluntary partnership:</strong> independent retailers collaborate under agreed terms.</li>
+<li><strong>Stock purchase or contribution:</strong> documented inventory purchases or contributions.</li>
+<li><strong>Cooperative arrangement:</strong> retailers participate through a transparent cooperative structure.</li>
+<li><strong>Business acquisition:</strong> voluntary acquisition based on an agreed valuation and legal documents.</li>
+</ul>
+</div>
+<div class="box">
+<h3>Fair Treatment of Existing Owners and Workers</h3>
+<p>Existing owners and workers may choose, under written agreements, to become:</p>
+<ul>
+<li>Compensated suppliers.</li>
+<li>Employees or store operators.</li>
+<li>Professional market managers.</li>
+<li>Investors or cooperative participants, where legally structured.</li>
+</ul>
+<p class="notice">Participation must be voluntary. No coercive acquisition, forced contribution or undocumented transfer of ownership.</p>
+</div>
+<div class="box">
+<h3>Retail Partnership Application Preview</h3>
+<label>Retail business name</label><input placeholder="Business name">
+<label>Ward / community</label><input placeholder="Community location">
+<label>Current owner</label><input placeholder="Owner name">
+<label>Preferred arrangement</label>
+<select>
+<option>Voluntary partnership</option>
+<option>Stock purchase / contribution</option>
+<option>Cooperative arrangement</option>
+<option>Business acquisition discussion</option>
+<option>Supplier relationship</option>
+</select>
+<label>Business assessment notes</label><textarea placeholder="Stock, premises, staff and valuation notes"></textarea>
+<button class="action" disabled>Save application — not connected</button>
+</div>
+<div class="box">
+<h3>Market Performance — Planned</h3>
+<p>Sales performance, stock turnover, supplier payments, operating costs, employment and community impact reporting.</p>
+</div>
+</section>
+
+<!-- INVENTORY -->
+<section class="panel" id="inventory">
+<h2>Inventory, Procurement & Warehouses</h2>
+<p class="sub">Planned stock and supply-chain management.</p>
+<div class="grid">
+  <div class="card"><small>Demo products</small><div class="metric">240</div></div>
+  <div class="card"><small>Demo suppliers</small><div class="metric">28</div></div>
+  <div class="card"><small>Warehouse locations</small><div class="metric">4</div></div>
+  <div class="card"><small>Low-stock alerts</small><div class="metric yellow">11</div></div>
+</div>
+<div class="box">
+<h3>Inventory Management Functions</h3>
+<ul>
+<li>Product catalogue and item classification.</li>
+<li>Purchase orders and supplier records.</li>
+<li>Warehouse receiving and dispatch.</li>
+<li>Stock transfers between locations.</li>
+<li>Physical stock counts and adjustments.</li>
+<li>Expiry, damaged goods and low-stock monitoring.</li>
+</ul>
+</div>
+<div class="box">
+<h3>Sample Stock Register</h3>
+<div class="table-wrap"><table>
+<thead><tr><th>Item ID</th><th>Product</th><th>Warehouse</th><th>Quantity</th><th>Status</th></tr></thead>
+<tbody>
+<tr><td>STK-001</td><td>Demo Rice</td><td>Warehouse A</td><td>500 bags</td><td><span class="status">Available</span></td></tr>
+<tr><td>STK-002</td><td>Demo Cooking Oil</td><td>Warehouse B</td><td>20 cartons</td><td><span class="status pending">Low stock</span></td></tr>
+<tr><td>STK-003</td><td>Demo Flour</td><td>Warehouse A</td><td>120 bags</td><td><span class="status">Available</span></td></tr>
+</tbody></table></div>
+</div>
+<div class="box">
+<h3>Procurement Request Preview</h3>
+<label>Product</label><input placeholder="Product name">
+<label>Supplier</label><input placeholder="Supplier name">
+<label>Requested quantity</label><input type="number" placeholder="Quantity">
+<button class="action" disabled>Create purchase order — not connected</button>
+</div>
+</section>
+
+<!-- COMPLIANCE -->
+<section class="panel" id="compliance">
+<h2>Compliance & Customer Verification</h2>
+<p class="sub">Planned KYC, business verification and compliance case management.</p>
+<div class="grid">
+  <div class="card"><small>Demo cases</small><div class="metric">180</div></div>
+  <div class="card"><small>Completed sample</small><div class="metric green">132</div></div>
+  <div class="card"><small>Pending review</small><div class="metric yellow">38</div></div>
+  <div class="card"><small>Escalated sample</small><div class="metric red">10</div></div>
+</div>
+<div class="box">
+<h3>Verification Workflow</h3>
+<ol>
+<li>Collect only legally required information.</li>
+<li>Verify identity and business documentation.</li>
+<li>Check document authenticity and consistency.</li>
+<li>Escalate suspicious or incomplete applications.</li>
+<li>Record reviewer decisions and reasons.</li>
+<li>Apply data retention and privacy requirements.</li>
+</ol>
+</div>
+<div class="box">
+<h3>Compliance Case Preview</h3>
+<div class="table-wrap"><table>
+<thead><tr><th>Case</th><th>Category</th><th>Review</th><th>Status</th></tr></thead>
+<tbody>
+<tr><td>KYC-001</td><td>Customer identity</td><td>Document check</td><td><span class="status pending">Pending</span></td></tr>
+<tr><td>KYC-002</td><td>Merchant business</td><td>Business verification</td><td><span class="status">Completed</span></td></tr>
+<tr><td>KYC-003</td><td>Customer identity</td><td>Additional review</td><td><span class="status alert">Escalated</span></td></tr>
+</tbody></table></div>
+<p class="notice">This prototype must not collect or store real identity documents.</p>
+</div>
+</section>
+
+<!-- RISK -->
+<section class="panel" id="risk">
+<h2>Risk & Fraud Monitoring</h2>
+<p class="sub">Planned controls for detecting unusual activity and protecting platform accounts.</p>
+<div class="grid">
+  <div class="card"><small>Demo alerts</small><div class="metric">24</div></div>
+  <div class="card"><small>Under investigation</small><div class="metric yellow">7</div></div>
+  <div class="card"><small>Resolved sample</small><div class="metric green">15</div></div>
+  <div class="card"><small>Critical sample</small><div class="metric red">2</div></div>
+</div>
+<div class="box">
+<h3>Risk Monitoring Rules — Planned</h3>
+<ul>
+<li>Repeated failed login attempts.</li>
+<li>Unusual transaction frequency or value.</li>
+<li>Duplicate transaction references.</li>
+<li>Unexpected account or device changes.</li>
+<li>Unusual merchant settlement patterns.</li>
+<li>Agent activity outside assigned limits.</li>
+<li>Suspicious administrator access.</li>
+</ul>
+</div>
+<div class="box">
+<h3>Sample Risk Alerts</h3>
+<div class="table-wrap"><table>
+<thead><tr><th>Alert ID</th><th>Type</th><th>Severity</th><th>Status</th></tr></thead>
+<tbody>
+<tr><td>RSK-001</td><td>Repeated login failures</td><td><span class="status alert">High</span></td><td><span class="status pending">Review</span></td></tr>
+<tr><td>RSK-002</td><td>Unusual transaction pattern</td><td><span class="status pending">Medium</span></td><td><span class="status pending">Review</span></td></tr>
+<tr><td>RSK-003</td><td>Duplicate reference</td><td><span class="status">Low</span></td><td><span class="status">Resolved</span></td></tr>
+</tbody></table></div>
+</div>
+<div class="box">
+<h3>Investigation Procedure</h3>
+<p>Preserve evidence, restrict access where justified, investigate independently, document decisions and provide an appeal or dispute route where appropriate.</p>
+</div>
 </section>
 
 <!-- TOKEN -->
-<section id="token" class="panel">
-  <div class="grid">
-    <article class="card span-6">
-      <h2>MCFT Token Information</h2>
-      <div class="activity"><span>Token name</span><strong>MIXCOFARM TOKEN</strong></div>
-      <div class="activity"><span>Symbol</span><strong>MCFT</strong></div>
-      <div class="activity"><span>Proposed supply</span><strong>1,000,000,000</strong></div>
-      <div class="activity"><span>Supply model</span><strong>Fixed proposal</strong></div>
-      <div class="activity"><span>Launch stage</span><strong class="yellow">Testnet planning</strong></div>
-    </article>
-    <article class="card span-6">
-      <h2>Token Utility Proposal</h2>
-      <div class="activity"><span>Payments</span><span>Proposed</span></div>
-      <div class="activity"><span>Merchant utility</span><span>Proposed</span></div>
-      <div class="activity"><span>Rewards</span><span>Proposed</span></div>
-      <div class="activity"><span>Project funding</span><span>Proposed</span></div>
-      <div class="notice">MCFT tokens do not represent company shares or ownership rights.</div>
-    </article>
-  </div>
+<section class="panel" id="token">
+<h2>MCFT Token Management</h2>
+<p class="sub">MIXCOFARM TOKEN — testnet planning and monitoring.</p>
+<div class="grid">
+  <div class="card"><small>Token symbol</small><div class="metric green">MCFT</div></div>
+  <div class="card"><small>Proposed supply</small><div class="metric">1B</div></div>
+  <div class="card"><small>Network</small><div class="metric blue">Testnet</div></div>
+  <div class="card"><small>Deployment status</small><div class="metric yellow">Planning</div></div>
+</div>
+<div class="box">
+<h3>Proposed Token Utilities</h3>
+<ul>
+<li>Platform rewards and incentives.</li>
+<li>Merchant and ecosystem utility, subject to approval.</li>
+<li>Community and ecosystem participation programmes.</li>
+<li>Potential project funding under an approved structure.</li>
+</ul>
+<p class="notice">MCFT tokens do not automatically represent company shares, ownership, dividends or guaranteed returns.</p>
+</div>
+<div class="box">
+<h3>Token Governance Controls — Planned</h3>
+<ul>
+<li>Token supply and issuance monitoring.</li>
+<li>Treasury allocation records.</li>
+<li>Vesting and distribution schedules.</li>
+<li>Smart contract verification and security review.</li>
+<li>Network and wallet integration monitoring.</li>
+</ul>
+</div>
 </section>
 
 <!-- TREASURY -->
-<section id="treasury" class="panel">
-  <div class="card">
-    <h2>MCFT Treasury Overview</h2>
-    <div class="notice">No real treasury wallet is connected. Do not enter wallet secrets or initiate transfers here.</div>
-    <div class="activity"><span>Proposed treasury allocation</span><strong>To be determined</strong></div>
-    <div class="activity"><span>Wallet connection</span><strong class="yellow">Not connected</strong></div>
-    <div class="activity"><span>Transfer capability</span><strong class="yellow">Disabled</strong></div>
-  </div>
+<section class="panel" id="treasury">
+<h2>Treasury Management</h2>
+<p class="sub">Planned oversight of platform funds and token treasury records.</p>
+<div class="grid">
+  <div class="card"><small>Connected treasury wallets</small><div class="metric yellow">0</div></div>
+  <div class="card"><small>Live balance</small><div class="metric">Not available</div></div>
+  <div class="card"><small>Pending approvals</small><div class="metric">0</div></div>
+  <div class="card"><small>Transfer capability</small><div class="metric red">Disabled</div></div>
+</div>
+<div class="box">
+<h3>Treasury Security Principles</h3>
+<ul>
+<li>Separate operational funds from token treasury assets.</li>
+<li>Use non-custodial wallet architecture where appropriate.</li>
+<li>Never store private keys or seed phrases in this dashboard.</li>
+<li>Require multi-person review for high-risk operations.</li>
+<li>Maintain transaction records and independent audits.</li>
+</ul>
+<p class="notice">No real wallet is connected. No transfer or withdrawal can be performed here.</p>
+</div>
 </section>
 
 <!-- REPORTS -->
-<section id="reports" class="panel">
-  <div class="card">
-    <h2>Reports and Analytics</h2>
-    <p class="muted">Reporting will be connected after database integration.</p>
-    <div class="activity"><span>Merchant report</span><span class="yellow">Not connected</span></div>
-    <div class="activity"><span>Customer report</span><span class="yellow">Not connected</span></div>
-    <div class="activity"><span>Payment report</span><span class="yellow">Not connected</span></div>
-    <div class="activity"><span>Token report</span><span class="yellow">Not connected</span></div>
-  </div>
+<section class="panel" id="reports">
+<h2>Reports & Analytics</h2>
+<p class="sub">Planned management reporting and operational analytics.</p>
+<div class="grid">
+  <div class="card"><small>Transaction report</small><div class="metric blue">Planned</div></div>
+  <div class="card"><small>Merchant report</small><div class="metric blue">Planned</div></div>
+  <div class="card"><small>Agent report</small><div class="metric blue">Planned</div></div>
+  <div class="card"><small>Risk report</small><div class="metric blue">Planned</div></div>
+</div>
+<div class="box">
+<h3>Planned Reports</h3>
+<ul>
+<li>Daily, weekly and monthly transaction summaries.</li>
+<li>Merchant sales and settlement reports.</li>
+<li>Agent activity and commission reports.</li>
+<li>Community retail market performance.</li>
+<li>Inventory and procurement reports.</li>
+<li>Compliance and risk reports.</li>
+<li>Treasury and token allocation reports.</li>
+</ul>
+</div>
+<div class="box">
+<h3>Report Filters — Preview</h3>
+<label>Report category</label>
+<select><option>Transaction report</option><option>Merchant report</option><option>Agent report</option><option>Community retail report</option><option>Inventory report</option><option>Risk report</option></select>
+<label>Start date</label><input type="date">
+<label>End date</label><input type="date">
+<button class="action" disabled>Generate report — not connected</button>
+</div>
 </section>
 
 <!-- ACTIVITY -->
-<section id="activity" class="panel">
-  <div class="card">
-    <h2>System Activity</h2>
-    <p class="muted small">These are example events, not actual audit logs.</p>
-    <div class="activity"><span>Admin interface opened</span><span>Demo</span></div>
-    <div class="activity"><span>Testnet dashboard viewed</span><span>Demo</span></div>
-    <div class="activity"><span>Sample merchant record displayed</span><span>Demo</span></div>
-  </div>
+<section class="panel" id="activity">
+<h2>System Activity & Audit</h2>
+<p class="sub">Illustrative activity log. This is not a live audit trail.</p>
+<div class="box">
+<h3>Sample System Events</h3>
+<div class="table-wrap"><table>
+<thead><tr><th>Event ID</th><th>Activity</th><th>Category</th><th>Result</th></tr></thead>
+<tbody>
+<tr><td>LOG-001</td><td>Admin dashboard opened</td><td>Access</td><td><span class="status">Demo</span></td></tr>
+<tr><td>LOG-002</td><td>Merchant application received</td><td>Merchant</td><td><span class="status pending">Demo</span></td></tr>
+<tr><td>LOG-003</td><td>Risk alert created</td><td>Security</td><td><span class="status alert">Demo</span></td></tr>
+</tbody></table></div>
+</div>
+<div class="box">
+<h3>Audit Requirements — Planned</h3>
+<ul>
+<li>Record administrator identity and actions.</li>
+<li>Timestamp important changes.</li>
+<li>Record approvals, rejections and reasons.</li>
+<li>Protect logs against unauthorized modification.</li>
+<li>Restrict access to sensitive audit records.</li>
+</ul>
+</div>
 </section>
 
 <!-- SETTINGS -->
-<section id="settings" class="panel">
-  <div class="card">
-    <h2>System Settings</h2>
-    <div class="activity"><span>Application</span><strong>MIXCOFARM MCFT</strong></div>
-    <div class="activity"><span>Interface version</span><strong>Initial prototype</strong></div>
-    <div class="activity"><span>Environment</span><strong>Development</strong></div>
-    <div class="activity"><span>Administrator login</span><strong class="yellow">Not implemented</strong></div>
-    <div class="activity"><span>Database</span><strong class="yellow">Pending connection</strong></div>
-    <div class="notice">
-      This public prototype page has no authentication.
-      Do not put confidential company, customer or wallet information here.
-    </div>
-  </div>
+<section class="panel" id="settings">
+<h2>System Settings</h2>
+<p class="sub">Prototype configuration and planned security controls.</p>
+<div class="box">
+<h3>Current Prototype Information</h3>
+<p>Application: MIXCOFARM DIGITAL FINANCE</p>
+<p>Dashboard file: mcft-admin.html</p>
+<p>Environment: Development / Testnet prototype</p>
+<p>Live database connection: Not configured in this page</p>
+<p>Live payment connection: Not configured in this page</p>
+</div>
+<div class="box">
+<h3>Security Requirements Before Production</h3>
+<ul>
+<li>Enable and test administrator authentication.</li>
+<li>Require strong passwords and multi-factor authentication.</li>
+<li>Use role-based access controls and least privilege.</li>
+<li>Apply server-side authorization to every protected API.</li>
+<li>Use CSRF protection and secure session management.</li>
+<li>Apply rate limits and account lockout controls.</li>
+<li>Protect personal data and financial information.</li>
+<li>Conduct independent penetration testing and security review.</li>
+<li>Complete applicable regulatory and legal reviews.</li>
+</ul>
+</div>
+<div class="box">
+<h3>Important Notice</h3>
+<p>This page is a public development prototype. It must not be treated as a secure administrator portal until authentication, authorization, backend integration and security testing have been completed.</p>
+</div>
 </section>
-
-<footer class="footer">
-  MIXCOFARM MCFT · Admin Interface Prototype · Demo Data Only
-  <br>Not a bank or licensed financial service.
-</footer>
 
 </main>
 </div>
 
+<footer>
+MIXCOFARM DIGITAL FINANCE · MCFT Development Dashboard · Prototype only ·
+No live financial operations are enabled.
+</footer>
+
 <script>
-const titles = {
-  overview:"Dashboard Overview",
-  merchants:"Merchant Management",
-  customers:"Customer Management",
-  transactions:"Pi Payment Transactions",
-  token:"MCFT Token Overview",
-  treasury:"Treasury Management",
-  reports:"Reports and Analytics",
-  activity:"System Activity",
-  settings:"System Settings"
-};
+const navButtons = document.querySelectorAll("#navigation button");
+const panels = document.querySelectorAll(".panel");
 
-function showPanel(name) {
-  document.querySelectorAll(".panel").forEach(panel => {
-    panel.classList.remove("active");
+function showPanel(panelId) {
+  panels.forEach(panel => {
+    panel.classList.toggle("active", panel.id === panelId);
   });
 
-  document.querySelectorAll(".nav button").forEach(button => {
-    button.classList.toggle("active",button.dataset.panel === name);
+  navButtons.forEach(button => {
+    button.classList.toggle("active", button.dataset.panel === panelId);
   });
 
-  const selected = document.getElementById(name);
-  if (!selected) return;
-
-  selected.classList.add("active");
-  document.getElementById("pageTitle").textContent = titles[name];
+  window.scrollTo({top: 0, behavior: "smooth"});
 }
 
-document.querySelectorAll(".nav button").forEach(button => {
-  button.addEventListener("click", () => showPanel(button.dataset.panel));
+navButtons.forEach(button => {
+  button.addEventListener("click", () => {
+    showPanel(button.dataset.panel);
+  });
 });
 </script>
+
 </body>
 </html>
